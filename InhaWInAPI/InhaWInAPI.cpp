@@ -121,18 +121,23 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //  WM_DESTROY  - post a quit message and return
 //
 //
+static TCHAR str[256];
+static int count, yPos;
+static SIZE size;
+
+void TextOut( HDC hdc );
+void RemoveText( HWND hWnd, HDC hdc, WPARAM wParam );
+void DrawLine_Test( HDC hdc );
+void DrawLine( HDC hdc, SIZE startPos, SIZE endPos );
+
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    static TCHAR str[256];
-    static int count, yPos;
-    static SIZE size;
+
 
     switch (message)
     {
     case WM_CREATE:
-        yPos = 120;
-        CreateCaret( hWnd, nullptr, 5, 15 );
-        ShowCaret( hWnd );
         break;
     case WM_COMMAND:
         {
@@ -155,62 +160,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
+
             // TODO: Add any drawing code that uses hdc here...
-            
-            // Draw Text at Pos
-            TextOut( hdc, 100, 100, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ) );
+            DrawLine( hdc, { 100,100 }, { 200,200 } );
+            DrawLine( hdc, { 200,200 }, { 100,200 } );
 
-            GetTextExtentPoint( hdc, str, _tcslen( str ), &size );
-            SetCaretPos( 400 + size.cx, yPos );
-            TextOut( hdc, 400, yPos, str, _tcslen( str ) );
-
-            RECT rc;
-            rc.left = 200;
-            rc.top = 200;
-            rc.right = 500;
-            rc.bottom = 300;
-
-            // Draw Text at RECT
-            SetTextColor( hdc, RGB( 255, 0, 0 ) );
-            DrawText( hdc, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ), &rc, DT_LEFT );
-            SetTextColor( hdc, RGB( 0, 255, 0 ) );
-            DrawText( hdc, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ), &rc, DT_CENTER );
-            SetTextColor( hdc, RGB( 0, 0, 255 ) );
-            DrawText( hdc, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ), &rc, DT_RIGHT );
-            EndPaint(hWnd, &ps);
+            EndPaint( hWnd, &ps );
         }
         break;
     case WM_KEYDOWN:
         break;
     case WM_CHAR:
     {
-        HDC hdc;
-        hdc = GetDC( hWnd );
-        
-
-        if ( wParam == VK_BACK && count > 0 )
-        {
-            str[--count] = NULL;
-        }
-        else if ( wParam == VK_RETURN )
-        {
-            yPos += 20;
-        }
-        else
-        {
-            str[count++] = wParam;
-            str[count] = NULL;
-        }
-        InvalidateRect( hWnd, nullptr, true );
-        break;
+       
     }
     case WM_KEYUP:
     {
 
     }
-        break;
+    break;
     case WM_DESTROY:
-        DestroyCaret();
         PostQuitMessage(0);
         break;
     default:
@@ -237,4 +206,58 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
+}
+
+void TextOut( HDC hdc )
+{
+    TextOut( hdc, 100, 100, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ) );
+
+    GetTextExtentPoint( hdc, str, _tcslen( str ), &size );
+    SetCaretPos( 400 + size.cx, yPos );
+    TextOut( hdc, 400, yPos, str, _tcslen( str ) );
+
+    RECT rc;
+    rc.left = 200;
+    rc.top = 200;
+    rc.right = 500;
+    rc.bottom = 300;
+
+    // Draw Text at RECT
+    SetTextColor( hdc, RGB( 255, 0, 0 ) );
+    DrawText( hdc, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ), &rc, DT_LEFT );
+    SetTextColor( hdc, RGB( 0, 255, 0 ) );
+    DrawText( hdc, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ), &rc, DT_CENTER );
+    SetTextColor( hdc, RGB( 0, 0, 255 ) );
+    DrawText( hdc, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ), &rc, DT_RIGHT );
+
+}
+
+void RemoveText( HWND hWnd, HDC hdc, WPARAM wParam )
+{
+    if ( wParam == VK_BACK && count > 0 )
+    {
+        str[--count] = NULL;
+    }
+    else if ( wParam == VK_RETURN )
+    {
+        yPos += 20;
+    }
+    else
+    {
+        str[count++] = wParam;
+        str[count] = NULL;
+    }
+    InvalidateRect( hWnd, nullptr, true );
+}
+
+void DrawLine_Test( HDC hdc )
+{
+    MoveToEx( hdc, 200, 200, nullptr );
+    LineTo( hdc, 500, 500 );
+}
+
+void DrawLine( HDC hdc, SIZE startPos, SIZE endPos )
+{
+    MoveToEx( hdc, startPos.cx, startPos.cy, nullptr );
+    LineTo( hdc, endPos.cx, endPos.cy );
 }
