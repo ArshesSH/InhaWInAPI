@@ -123,8 +123,17 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+    static TCHAR str[256];
+    static int count, yPos;
+    static SIZE size;
+
     switch (message)
     {
+    case WM_CREATE:
+        yPos = 120;
+        CreateCaret( hWnd, nullptr, 5, 15 );
+        ShowCaret( hWnd );
+        break;
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
@@ -151,6 +160,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             // Draw Text at Pos
             TextOut( hdc, 100, 100, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ) );
 
+            GetTextExtentPoint( hdc, str, _tcslen( str ), &size );
+            SetCaretPos( 400 + size.cx, yPos );
+            TextOut( hdc, 400, yPos, str, _tcslen( str ) );
+
             RECT rc;
             rc.left = 200;
             rc.top = 200;
@@ -165,11 +178,39 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             SetTextColor( hdc, RGB( 0, 0, 255 ) );
             DrawText( hdc, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ), &rc, DT_RIGHT );
             EndPaint(hWnd, &ps);
-
-
         }
         break;
+    case WM_KEYDOWN:
+        break;
+    case WM_CHAR:
+    {
+        HDC hdc;
+        hdc = GetDC( hWnd );
+        
+
+        if ( wParam == VK_BACK && count > 0 )
+        {
+            str[--count] = NULL;
+        }
+        else if ( wParam == VK_RETURN )
+        {
+            yPos += 20;
+        }
+        else
+        {
+            str[count++] = wParam;
+            str[count] = NULL;
+        }
+        InvalidateRect( hWnd, nullptr, true );
+        break;
+    }
+    case WM_KEYUP:
+    {
+
+    }
+        break;
     case WM_DESTROY:
+        DestroyCaret();
         PostQuitMessage(0);
         break;
     default:
