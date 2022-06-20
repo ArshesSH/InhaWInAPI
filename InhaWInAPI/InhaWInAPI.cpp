@@ -16,6 +16,16 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+static TCHAR str[256];
+static int count, yPos;
+static SIZE size;
+
+void TextOut( HDC hdc );
+void RemoveText( HWND hWnd, HDC hdc, WPARAM wParam );
+void DrawLine_Test( HDC hdc );
+void DrawLine( HDC hdc, POINT startPos, POINT endPos );
+void DrawGrid( HDC hdc, POINT leftTop, POINT rightBottom, LONG nWidth, LONG nHeight );
+
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -121,14 +131,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //  WM_DESTROY  - post a quit message and return
 //
 //
-static TCHAR str[256];
-static int count, yPos;
-static SIZE size;
 
-void TextOut( HDC hdc );
-void RemoveText( HWND hWnd, HDC hdc, WPARAM wParam );
-void DrawLine_Test( HDC hdc );
-void DrawLine( HDC hdc, SIZE startPos, SIZE endPos );
 
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -162,8 +165,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             HDC hdc = BeginPaint(hWnd, &ps);
 
             // TODO: Add any drawing code that uses hdc here...
-            DrawLine( hdc, { 100,100 }, { 200,200 } );
-            DrawLine( hdc, { 200,200 }, { 100,200 } );
+            DrawGrid( hdc, { 100, 100 }, { 300,300 }, 10, 10 );
 
             EndPaint( hWnd, &ps );
         }
@@ -256,8 +258,22 @@ void DrawLine_Test( HDC hdc )
     LineTo( hdc, 500, 500 );
 }
 
-void DrawLine( HDC hdc, SIZE startPos, SIZE endPos )
+void DrawLine( HDC hdc, POINT startPos, POINT endPos )
 {
-    MoveToEx( hdc, startPos.cx, startPos.cy, nullptr );
-    LineTo( hdc, endPos.cx, endPos.cy );
+    MoveToEx( hdc, startPos.x, startPos.y, nullptr );
+    LineTo( hdc, endPos.x, endPos.y );
+}
+
+
+// 격자무늬 그리기
+void DrawGrid( HDC hdc, POINT leftTop, POINT rightBottom, LONG nWidth, LONG nHeight )
+{
+    for ( int y = leftTop.y; y <= rightBottom.y; y += nHeight )
+    {
+        DrawLine( hdc, { leftTop.x, y }, { rightBottom.x, y } );
+    }
+    for ( int x = leftTop.x; x <= rightBottom.x; x += nWidth )
+    {
+        DrawLine( hdc, { x, leftTop.y }, { x, rightBottom.y } );
+    }
 }
