@@ -165,7 +165,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             HDC hdc = BeginPaint(hWnd, &ps);
 
             // TODO: Add any drawing code that uses hdc here...
-            DrawGrid( hdc, { 100, 100 }, { 300,300 }, 10, 10 );
+            DrawGrid( hdc, { 100, 100 }, { 300,300 }, 35, 35 );
 
             EndPaint( hWnd, &ps );
         }
@@ -268,12 +268,15 @@ void DrawLine( HDC hdc, POINT startPos, POINT endPos )
 // 격자무늬 그리기
 void DrawGrid( HDC hdc, POINT leftTop, POINT rightBottom, LONG nWidth, LONG nHeight )
 {
-    for ( int y = leftTop.y; y <= rightBottom.y; y += nHeight )
+    for ( int y = leftTop.y; y < rightBottom.y; y += nHeight )
     {
         DrawLine( hdc, { leftTop.x, y }, { rightBottom.x, y } );
     }
-    for ( int x = leftTop.x; x <= rightBottom.x; x += nWidth )
+    DrawLine( hdc, { rightBottom.x, leftTop.y }, { rightBottom.x, rightBottom.y + 1 } );
+
+    for ( int x = leftTop.x; x < rightBottom.x; x += nWidth )
     {
         DrawLine( hdc, { x, leftTop.y }, { x, rightBottom.y } );
     }
+    DrawLine( hdc, { leftTop.x, rightBottom.y }, { rightBottom.x + 1, rightBottom.y } );
 }
