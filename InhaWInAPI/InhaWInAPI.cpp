@@ -148,20 +148,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             HDC hdc = BeginPaint(hWnd, &ps);
             // TODO: Add any drawing code that uses hdc here...
             
-            // Draw Text at
+            // Draw Text at Pos
             TextOut( hdc, 100, 100, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ) );
 
-            RECT rc;
             RECT rc;
             rc.left = 200;
             rc.top = 200;
             rc.right = 500;
             rc.bottom = 300;
 
+            // Draw Text at RECT
+            SetTextColor( hdc, RGB( 255, 0, 0 ) );
             DrawText( hdc, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ), &rc, DT_LEFT );
+            SetTextColor( hdc, RGB( 0, 255, 0 ) );
             DrawText( hdc, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ), &rc, DT_CENTER );
+            SetTextColor( hdc, RGB( 0, 0, 255 ) );
             DrawText( hdc, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ), &rc, DT_RIGHT );
             EndPaint(hWnd, &ps);
+
+
         }
         break;
     case WM_DESTROY:
