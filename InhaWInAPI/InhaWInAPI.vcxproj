@@ -139,13 +139,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Circle2D.h" />
+    <ClInclude Include="FrameTimer.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GeometricObject.h" />
     <ClInclude Include="InhaWInAPI.h" />
+    <ClInclude Include="MathSH.h" />
+    <ClInclude Include="Question.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Vec2.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FrameTimer.cpp" />
     <ClCompile Include="InhaWInAPI.cpp" />
+    <ClCompile Include="Question.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="InhaWInAPI.rc" />

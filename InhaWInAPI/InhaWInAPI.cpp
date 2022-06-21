@@ -5,6 +5,9 @@
 #include "InhaWInAPI.h"
 
 #include <vector>
+#include "Question.h"
+#include "GeometricObject.h"
+#include "FrameTimer.h"
 
 #define MAX_LOADSTRING 100
 
@@ -23,6 +26,7 @@ INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 static TCHAR str[256];
 static int count, yPos;
 static SIZE size;
+static FrameTimer ft;
 
 void TextOut( HDC hdc );
 void RemoveText( HWND hWnd, HDC hdc, WPARAM wParam );
@@ -34,6 +38,7 @@ void DrawCircle( HDC hdc, POINT center, int radius );
 //void DrawRect_Test( HDC hdc );
 void DrawRect( HDC hdc, POINT center, int width, int height );
 void DrawPolygonTest( HDC hdc );
+
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -144,7 +149,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-
+    const float dt = ft.Mark();
 
     switch (message)
     {
@@ -171,6 +176,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
+
+            
 
             // TODO: Add any drawing code that uses hdc here...
             DrawGrid( hdc, { 100, 100 }, { 300,300 }, 35, 35 );
@@ -202,6 +209,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 DeleteObject( hBrush );
             }
 
+            Question::DrawSunFlower( hdc, { 600, 600 }, 200, 8 );
+            //Question::DrawStar( hdc, { 300, 300 }, 100, 9 );
+
+            Star<int> s1( { 300,300 }, 100, 5 );
+            s1.Draw(hdc);
+
+            
+            TextOut( hdc, 100, dt, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ) );
+            
 
             /* Using Pen 
             HPEN hPen, oldPen;
