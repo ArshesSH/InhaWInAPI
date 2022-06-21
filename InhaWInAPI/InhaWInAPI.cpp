@@ -33,7 +33,7 @@ void DrawGrid( HDC hdc, POINT leftTop, POINT rightBottom, LONG nWidth, LONG nHei
 void DrawCircle( HDC hdc, POINT center, int radius );
 //void DrawRect_Test( HDC hdc );
 void DrawRect( HDC hdc, POINT center, int width, int height );
-//void DrawPolygonTest( HDC hdc );
+void DrawPolygonTest( HDC hdc );
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -176,6 +176,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DrawGrid( hdc, { 100, 100 }, { 300,300 }, 35, 35 );
             DrawCircle( hdc, { 200, 200 }, 100 );
             DrawRect( hdc, { 400,400 }, 50, 60 );
+
+            /* Using Pen 
+            HPEN hPen, oldPen;
+            hPen = CreatePen( PS_DOT, 1, RGB( 255, 0, 0 ) );
+            oldPen = (HPEN)SelectObject( hdc, hPen );
+            DrawPolygonTest( hdc );
+            SelectObject( hdc, oldPen );
+            DeleteObject( hPen );
+            */
+
+
             EndPaint( hWnd, &ps );
         }
         break;
