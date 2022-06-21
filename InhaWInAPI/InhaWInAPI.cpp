@@ -193,6 +193,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 DeleteObject( hBrush );
             }
 
+            {
+                HBRUSH hBrush, oldBrush;
+                hBrush = (HBRUSH)GetStockObject( NULL_BRUSH );
+                oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
+                DrawPolygonTest( hdc );
+                SelectObject( hdc, oldBrush );
+                DeleteObject( hBrush );
+            }
+
 
             /* Using Pen 
             HPEN hPen, oldPen;
