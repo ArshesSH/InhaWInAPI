@@ -4,6 +4,8 @@
 #include "framework.h"
 #include "InhaWInAPI.h"
 
+#include <vector>
+
 #define MAX_LOADSTRING 100
 
 // Global Variables:
@@ -16,16 +18,22 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+
+
 static TCHAR str[256];
 static int count, yPos;
 static SIZE size;
 
 void TextOut( HDC hdc );
 void RemoveText( HWND hWnd, HDC hdc, WPARAM wParam );
-void DrawLine_Test( HDC hdc );
+//void DrawLine_Test( HDC hdc );
 void DrawLine( HDC hdc, POINT startPos, POINT endPos );
 void DrawGrid( HDC hdc, POINT leftTop, POINT rightBottom, LONG nWidth, LONG nHeight );
-
+//void DrawCircle_Test( HDC hdc );
+void DrawCircle( HDC hdc, POINT center, int radius );
+//void DrawRect_Test( HDC hdc );
+void DrawRect( HDC hdc, POINT center, int width, int height );
+//void DrawPolygonTest( HDC hdc );
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -116,7 +124,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    }
 
    ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
+   UpdateWindow(hWnd);  
 
    return TRUE;
 }
@@ -166,7 +174,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             // TODO: Add any drawing code that uses hdc here...
             DrawGrid( hdc, { 100, 100 }, { 300,300 }, 35, 35 );
-
+            DrawCircle( hdc, { 200, 200 }, 100 );
+            DrawRect( hdc, { 400,400 }, 50, 60 );
             EndPaint( hWnd, &ps );
         }
         break;
@@ -279,4 +288,36 @@ void DrawGrid( HDC hdc, POINT leftTop, POINT rightBottom, LONG nWidth, LONG nHei
         DrawLine( hdc, { x, leftTop.y }, { x, rightBottom.y } );
     }
     DrawLine( hdc, { leftTop.x, rightBottom.y }, { rightBottom.x + 1, rightBottom.y } );
+}
+
+void DrawCircle( HDC hdc, POINT center, int radius )
+{
+    Ellipse( hdc, center.x - radius, center.y - radius, center.x + radius, center.y + radius );
+}
+
+void DrawRect( HDC hdc, POINT center, int width, int height )
+{
+    Rectangle( hdc, center.x - width, center.y - height, center.x + width, center.y + width );
+}
+
+void DrawPolygonTest( HDC hdc )
+{
+    const std::vector<POINT> p = {
+        {10,150},
+        {250,30},
+        {500,150},
+        {350,300},
+        {150,300}
+    };
+    Polygon( hdc, &p[0], p.size() );
+}
+
+void DrawRect_Test( HDC hdc )
+{
+    Rectangle( hdc, 300, 300, 400, 400 );
+}
+
+void DrawCircle_Test( HDC hdc )
+{
+    Ellipse( hdc, 300, 300, 400, 400 );
 }
