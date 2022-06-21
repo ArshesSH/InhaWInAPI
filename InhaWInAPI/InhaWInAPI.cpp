@@ -174,8 +174,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             // TODO: Add any drawing code that uses hdc here...
             DrawGrid( hdc, { 100, 100 }, { 300,300 }, 35, 35 );
-            DrawCircle( hdc, { 200, 200 }, 100 );
-            DrawRect( hdc, { 400,400 }, 50, 60 );
+            {
+
+                HPEN hPen, oldPen;
+                hPen = CreatePen( PS_DOT, 1, RGB( 255, 0, 0 ) );
+                oldPen = (HPEN)SelectObject( hdc, hPen );
+                DrawCircle( hdc, { 200, 200 }, 100 );
+                SelectObject( hdc, oldPen );
+                DeleteObject( hPen );
+            }
+
+            {
+                HBRUSH hBrush, oldBrush;
+                hBrush = CreateSolidBrush( RGB( 0, 255, 0 ) );
+                oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
+                DrawRect( hdc, { 400,400 }, 50, 60 );
+                SelectObject( hdc, oldBrush );
+                DeleteObject( hBrush );
+            }
+
 
             /* Using Pen 
             HPEN hPen, oldPen;
