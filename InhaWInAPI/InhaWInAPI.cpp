@@ -152,22 +152,37 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     //static Question q7;
-    static Vec2<int> curPos( 30, 30 );
     static RECT rcClient;
+    static Circle<int> c1( { 30, 30 }, 20 );
 
     switch (message)
     {
     case WM_CREATE:
         GetClientRect( hWnd, &rcClient );
 
+        /*
         // Create Timer
         SetTimer( hWnd, 1, 100, nullptr );
+        SetTimer( hWnd, 2, 200, nullptr );
+        */
         break;
     case WM_TIMER:
     {
         // Called when Timer On
-        curPos.x += 40;
-        InvalidateRect( hWnd, nullptr, true );
+
+        /*
+        *         // Is Timer1
+        if ( wParam == 1 )
+        {
+            curPos.x += 40;
+            InvalidateRect( hWnd, nullptr, true );
+        }
+        else if ( wParam == 2 )
+        {
+            curPos.x -= 40;
+            InvalidateRect( hWnd, nullptr, true );
+        }
+        */
     }
     break;
     case WM_COMMAND:
@@ -248,11 +263,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         */
 
 
-  
-
-
-        Ellipse( hdc, curPos.x - 20, curPos.y - 20, curPos.x + 20, curPos.y + 20 );
-
+        c1.DrawSelected( hdc );
 
         EndPaint( hWnd, &ps );
         }
@@ -267,49 +278,44 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         //q7.P93Q7_GetRectKbdDown(hWnd, wParam);
 
-
-        if ( wParam == VK_RIGHT )
-        {
-            curPos.x += 40;
-            if ( curPos.x + 20 > rcClient.right )
-            {
-                curPos.x = rcClient.right - 20;
-            }
-        }
-        if ( wParam == VK_LEFT )
-        {
-            curPos.x -= 40;
-            if ( curPos.x - 20 < rcClient.left )
-            {
-                curPos.x = rcClient.left + 20;
-            }
-        }
-        if ( wParam == VK_UP )
-        {
-            curPos.y -= 40;
-            if ( curPos.y - 20 < rcClient.top )
-            {
-                curPos.y = rcClient.top + 20;
-            }
-        }
-        if ( wParam == VK_DOWN )
-        {
-            curPos.y += 40;
-            if ( curPos.y + 20 > rcClient.bottom )
-            {
-                curPos.y = rcClient.bottom - 20;
-            }
-        }
-
+        //if ( wParam == VK_RIGHT )
+        //{
+        //    curPos.x += 40;
+        //    if ( curPos.x + 20 > rcClient.right )
+        //    {
+        //        curPos.x = rcClient.right - 20;
+        //    }
+        //}
+        //if ( wParam == VK_LEFT )
+        //{
+        //    curPos.x -= 40;
+        //    if ( curPos.x - 20 < rcClient.left )
+        //    {
+        //        curPos.x = rcClient.left + 20;
+        //    }
+        //}
+        //if ( wParam == VK_UP )
+        //{
+        //    curPos.y -= 40;
+        //    if ( curPos.y - 20 < rcClient.top )
+        //    {
+        //        curPos.y = rcClient.top + 20;
+        //    }
+        //}
+        //if ( wParam == VK_DOWN )
+        //{
+        //    curPos.y += 40;
+        //    if ( curPos.y + 20 > rcClient.bottom )
+        //    {
+        //        curPos.y = rcClient.bottom - 20;
+        //    }
+        //}
 
         InvalidateRect( hWnd, nullptr, true );
-
-
     }
     break;
     case WM_CHAR:
     {
-       
     }
     break;
     case WM_KEYUP:
@@ -317,6 +323,35 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         //q7.P93Q7_GetRectKbdUp( hWnd, wParam );
     }
     break;
+
+    case WM_LBUTTONDOWN:
+    {
+        const Vec2<int> mousePos{ LOWORD( lParam ), HIWORD( lParam ) };
+        if ( c1.IsContains( mousePos ) )
+        {
+            c1.SetSelected();
+            InvalidateRect( hWnd, nullptr, true );
+        }
+    }
+    break;
+
+    case WM_LBUTTONUP:
+    {
+        c1.SetSelected( false );
+        InvalidateRect( hWnd, nullptr, true );
+    }
+    break;
+
+    case WM_MOUSEMOVE:
+    {
+        if ( c1.GetSelected() )
+        {
+            c1.SetCenter( { LOWORD( lParam ) ,HIWORD( lParam ) } );
+            InvalidateRect( hWnd, nullptr, true );
+        }
+    }
+    break;
+
     case WM_DESTROY:
         PostQuitMessage(0);
 

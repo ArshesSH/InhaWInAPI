@@ -65,8 +65,18 @@ public:
 	{
 		return Vec2<T>( (T)p.x, (T)p.y );
 	}
+	bool GetSelected() const
+	{
+		return isSelected;
+	}
+	void SetSelected( bool parm = true )
+	{
+		isSelected = parm;
+	}
+
 protected:
 	Vec2<T> center;
+	bool isSelected = false;
 };
 
 template<typename T>
@@ -154,10 +164,42 @@ public:
 	}
 	void Draw(HDC hdc) const override
 	{
-		Ellipse( hdc, (int)(GeometricObject<T>::center.x - radius),
-			(int)(GeometricObject<T>::center.y - radius),
-			(int)(GeometricObject<T>::center.x + radius),
-			(int)(GeometricObject<T>::center.y + radius) );
+		const int left = (int)(GeometricObject<T>::center.x - radius);
+		const int top = (int)(GeometricObject<T>::center.y - radius);
+		const int right = (int)(GeometricObject<T>::center.x + radius);
+		const int bottom = (int)(GeometricObject<T>::center.y + radius);
+
+		Ellipse( hdc, left, top, right, bottom );
+	}
+	void DrawColor( HDC hdc, COLORREF color = 0xFFFFFF ) const
+	{
+		const int left = (int)(GeometricObject<T>::center.x - radius);
+		const int top = (int)(GeometricObject<T>::center.y - radius);
+		const int right = (int)(GeometricObject<T>::center.x + radius);
+		const int bottom = (int)(GeometricObject<T>::center.y + radius);
+
+		HBRUSH hBrush;
+		hBrush = CreateSolidBrush( color );
+		SelectObject( hdc, hBrush );
+		Ellipse( hdc, left, top, right, bottom );
+		DeleteObject( hBrush );
+	}
+	void DrawSelected( HDC hdc, COLORREF color = 0x0000FF) const
+	{
+		const int left = (int)(GeometricObject<T>::center.x - radius);
+		const int top = (int)(GeometricObject<T>::center.y - radius);
+		const int right = (int)(GeometricObject<T>::center.x + radius);
+		const int bottom = (int)(GeometricObject<T>::center.y + radius);
+
+		if ( GeometricObject<T>::isSelected )
+		{
+			Rectangle( hdc, left, top, right, bottom );
+			DrawColor( hdc, color );
+		}
+		else
+		{
+			Draw( hdc );
+		}
 	}
 	
 private:
