@@ -84,7 +84,7 @@ public:
 			(T)0,	(T)0,	(T)1
 		};
 	}
-	static Mat3 Translation( const Vec2& v )
+	static Mat3 Translation( const Vec2<T>& v )
 	{
 		return{
 			(T)1,	(T)0,	(T)v.x,

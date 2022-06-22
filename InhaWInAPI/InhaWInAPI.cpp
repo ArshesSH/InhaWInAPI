@@ -9,6 +9,7 @@
 #include "Question.h"
 #include "GeometricObject.h"
 #include "FrameTimer.h"
+#include "PhysicsField.h"
 
 
 #define MAX_LOADSTRING 100
@@ -151,39 +152,24 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    //static Question q7;
     static RECT rcClient;
-    static Circle<int> c1( { 30, 30 }, 20 );
-    static Circle<int> c2( { 100,100 }, 30 );
+    static FrameTimer ft;
+
+    static PhysicsField field;
+
+    float dt = ft.Mark();
+    field.Update(dt);
 
     switch (message)
     {
     case WM_CREATE:
         GetClientRect( hWnd, &rcClient );
 
-        /*
-        // Create Timer
-        SetTimer( hWnd, 1, 100, nullptr );
-        SetTimer( hWnd, 2, 200, nullptr );
-        */
         break;
     case WM_TIMER:
     {
         // Called when Timer On
 
-        /*
-        *         // Is Timer1
-        if ( wParam == 1 )
-        {
-            curPos.x += 40;
-            InvalidateRect( hWnd, nullptr, true );
-        }
-        else if ( wParam == 2 )
-        {
-            curPos.x -= 40;
-            InvalidateRect( hWnd, nullptr, true );
-        }
-        */
     }
     break;
     case WM_COMMAND:
@@ -207,62 +193,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint( hWnd, &ps );
-
-        //q7.P93Q7_CreateRect(hdc);
-
         // TODO: Add any drawing code that uses hdc here...
-        /*
+        
+        std::wstring testDT = std::to_wstring( dt );
+        TextOut( hdc, 100, 100, testDT.c_str(), testDT.size() );
 
-        DrawGrid( hdc, { 100, 100 }, { 300,300 }, 35, 35 );
-        {
-
-            HPEN hPen, oldPen;
-            hPen = CreatePen( PS_DOT, 1, RGB( 255, 0, 0 ) );
-            oldPen = (HPEN)SelectObject( hdc, hPen );
-            DrawCircle( hdc, { 200, 200 }, 100 );
-            SelectObject( hdc, oldPen );
-            DeleteObject( hPen );
-        }
-
-        {
-            HBRUSH hBrush, oldBrush;
-            hBrush = CreateSolidBrush( RGB( 0, 255, 0 ) );
-            oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
-            DrawRect( hdc, { 400,400 }, 50, 60 );
-            SelectObject( hdc, oldBrush );
-            DeleteObject( hBrush );
-        }
-
-        {
-            HBRUSH hBrush, oldBrush;
-            hBrush = (HBRUSH)GetStockObject( NULL_BRUSH );
-            oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
-            DrawPolygonTest( hdc );
-            SelectObject( hdc, oldBrush );
-            DeleteObject( hBrush );
-        }
-
-        Question::DrawSunFlower( hdc, { 600, 600 }, 200, 8 );
-        //Question::DrawStar( hdc, { 300, 300 }, 100, 9 );
-
-        Star<int> s1( { 300,300 }, 100, 5 );
-        s1.Draw(hdc);
-
-        /* Using Pen
-        HPEN hPen, oldPen;
-        hPen = CreatePen( PS_DOT, 1, RGB( 255, 0, 0 ) );
-        oldPen = (HPEN)SelectObject( hdc, hPen );
-        DrawPolygonTest( hdc );
-        SelectObject( hdc, oldPen );
-        DeleteObject( hPen );
-        */
-
-        /*
-        *         // 화면 크기 얻기
-        RECT rc;
-        GetClientRect( hWnd, &rc );
-        */
-
+        field.Draw(hdc);
 
         EndPaint( hWnd, &ps );
         }
@@ -275,7 +211,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
     case WM_KEYDOWN:
     {
-        InvalidateRect( hWnd, nullptr, true );
+        
     }
     break;
     case WM_CHAR:
@@ -289,38 +225,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     {
-        const Vec2<int> mousePos{ LOWORD( lParam ), HIWORD( lParam ) };
-        if ( c1.IsContains( mousePos ) )
-        {
-            c1.SetSelected();
-            
-            InvalidateRect( hWnd, nullptr, true );
-        }
+        field.AddCircle();
+        InvalidateRect( hWnd, nullptr, true );
     }
     break;
 
     case WM_LBUTTONUP:
     {
-        c1.SetSelected( false );
-        InvalidateRect( hWnd, nullptr, true );
     }
     break;
 
     case WM_MOUSEMOVE:
     {
-        if ( c1.GetSelected() )
-        {
-            c1.SetCenter( { LOWORD( lParam ) ,HIWORD( lParam ) } );
-            InvalidateRect( hWnd, nullptr, true );
-        }
     }
     break;
 
     case WM_DESTROY:
         PostQuitMessage(0);
-
-        //Destroy Timer
-        KillTimer( hWnd, 1 );
         break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);

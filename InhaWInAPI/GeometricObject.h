@@ -349,7 +349,7 @@ template<typename T>
 class Star : public GeometricObject<T>
 {
 public:
-	Star( const Vec2<T> center, int outerRadius, int nFlares )
+	Star( const Vec2<T> center, T outerRadius, int nFlares )
 		:
 		GeometricObject<T>( center.x, center.y ),
 		nFlares( nFlares ),
@@ -359,7 +359,7 @@ public:
 	{
 		MakeStar();
 	}
-	Star(const Vec2<T> center, int outerRadius, int innerRadius, int nFlares )
+	Star(const Vec2<T> center, T outerRadius, T innerRadius, int nFlares )
 		:
 		GeometricObject<T>( center.x, center.y ),
 		nFlares( nFlares ),
@@ -377,7 +377,7 @@ public:
 		points.reserve( size );
 		for ( auto e : starPoints )
 		{
-			const POINT p = { e.x, e.y };
+			const POINT p = { (int)e.x, (int)e.y };
 			points.push_back( p );
 		}
 
@@ -399,8 +399,8 @@ private:
 private:
 	const int nFlares;
 	const double dTheta;
-	int outerRadius;
-	int innerRadius;
+	T outerRadius;
+	T innerRadius;
 	std::vector<Vec2<T>> starPoints;
 };
 

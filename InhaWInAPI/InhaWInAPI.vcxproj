@@ -146,6 +146,8 @@
     <ClInclude Include="InhaWInAPI.h" />
     <ClInclude Include="Mat3.h" />
     <ClInclude Include="MathSH.h" />
+    <ClInclude Include="PhysicsEntity.h" />
+    <ClInclude Include="PhysicsField.h" />
     <ClInclude Include="Question.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
@@ -155,6 +157,8 @@
   <ItemGroup>
     <ClCompile Include="FrameTimer.cpp" />
     <ClCompile Include="InhaWInAPI.cpp" />
+    <ClCompile Include="PhysicsEntity.cpp" />
+    <ClCompile Include="PhysicsField.cpp" />
     <ClCompile Include="Question.cpp" />
   </ItemGroup>
   <ItemGroup>
