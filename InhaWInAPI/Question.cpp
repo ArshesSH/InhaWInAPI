@@ -1,6 +1,5 @@
 #include "Question.h"
 #include "Circle2D.h"
-
 #include <vector>
 
 /*
@@ -82,5 +81,78 @@ void Question::DrawStar( HDC hdc, POINT center, int outerRadius, int innerRadius
     // Draw
     {
         Polygon( hdc, &star[0], count * 2 );
+    }
+}
+
+
+void Question::P93Q7_CreateRect( HDC hdc )
+{
+    const Vec2<int> centerMiddle( 600, 400 );
+    const int rectWidth = 100;
+    const int rectHeight = 200;
+
+    Rect<int> rectUp( (centerMiddle + Vec2<int>( 0, -rectHeight )), rectWidth, rectHeight );
+    Rect<int> rectDown( (centerMiddle + Vec2<int>( 0, rectHeight )), rectWidth, rectHeight );
+    Rect<int> rectLeft( (centerMiddle + Vec2<int>( -rectWidth, 0 )), rectWidth, rectHeight );
+    Rect<int> rectRight( (centerMiddle + Vec2<int>( rectWidth, 0 )), rectWidth, rectHeight );
+
+    P93Q7_DrawDirRect( hdc, rectUp, dirUp, L"위쪽" );
+    P93Q7_DrawDirRect( hdc, rectDown, dirDown, L"아래쪽" );
+    P93Q7_DrawDirRect( hdc, rectLeft, dirLeft, L"왼쪽" );
+    P93Q7_DrawDirRect( hdc, rectRight, dirRight, L"오른쪽" );
+
+    std::wstring txt = L"curPos = (" + std::to_wstring( rectPos.x ) + L", " + std::to_wstring( rectPos.y ) + L")";
+    TextOut( hdc, 100, 100, txt.c_str(), txt.size() );
+}
+
+void Question::P93Q7_GetRectKbdDown( HWND& hWnd, WPARAM wParam )
+{
+    if ( wParam == VK_RIGHT )
+    {
+        rectPos = dirRight;
+        InvalidateRgn( hWnd, nullptr, true );
+    }
+    if ( wParam == VK_LEFT )
+    {
+        rectPos = dirLeft;
+        InvalidateRgn( hWnd, nullptr, true );
+    }
+    if ( wParam == VK_UP )
+    {
+        rectPos = dirUp;
+        InvalidateRgn( hWnd, nullptr, true );
+    }
+    if ( wParam == VK_DOWN )
+    {
+        rectPos = dirDown;
+        InvalidateRgn( hWnd, nullptr, true );
+    }
+}
+
+void Question::P93Q7_GetRectKbdUp( HWND& hWnd,WPARAM wParam )
+{
+    if ( wParam == VK_UP || VK_DOWN || VK_LEFT || VK_RIGHT )
+    {
+        rectPos = { 0, 0 };
+        InvalidateRgn( hWnd, nullptr, true );
+    }
+}
+
+void Question::P93Q7_DrawDirRect( HDC hdc, const Rect<int>& rect, const Vec2<int>& dir, const std::wstring& str )
+{
+    if ( rectPos == dir )
+    {
+        HBRUSH hBrush, oldBrush;
+        hBrush = CreateSolidBrush( RGB( 255, 0, 0 ) );
+        oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
+        rect.Draw( hdc );
+        SelectObject( hdc, oldBrush );
+        DeleteObject( hBrush );
+    }
+    else
+    {
+        RECT r = rect.GetRECT();
+        rect.Draw( hdc );
+        DrawText( hdc, str.c_str(), str.size(), &r, DT_CENTER | DT_VCENTER | DT_SINGLELINE );
     }
 }

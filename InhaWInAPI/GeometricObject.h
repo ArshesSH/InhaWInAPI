@@ -13,6 +13,10 @@ public:
 		:
 		center((T)0, (T)0)
 	{}
+	GeometricObject(const Vec2<T> center)
+		:
+		center(center)
+	{}
 	GeometricObject( T x, T y )
 		:
 		center(x, y)
@@ -273,6 +277,10 @@ public:
 	void Draw( HDC hdc ) const override
 	{
 		Rectangle( hdc, (int)left, (int)top, (int)right, (int)bottom );
+	}
+	RECT GetRECT() const
+	{
+		return { left, top, right, bottom };
 	}
 
 private:

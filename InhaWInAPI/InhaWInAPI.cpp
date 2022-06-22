@@ -30,7 +30,7 @@ static int count, yPos;
 static SIZE size;
 static FrameTimer ft;
 
-void TextOut( HDC hdc );
+void TextOutTest( HDC hdc );
 void RemoveText( HWND hWnd, HDC hdc, WPARAM wParam );
 //void DrawLine_Test( HDC hdc );
 void DrawLine( HDC hdc, POINT startPos, POINT endPos );
@@ -151,7 +151,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    const float dt = ft.Mark();
+    //static Question q7;
 
     switch (message)
     {
@@ -175,76 +175,75 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
     case WM_PAINT:
+    {
+        PAINTSTRUCT ps;
+        HDC hdc = BeginPaint( hWnd, &ps );
+
+        //q7.P93Q7_CreateRect(hdc);
+
+        // TODO: Add any drawing code that uses hdc here...
+        /*
+
+        DrawGrid( hdc, { 100, 100 }, { 300,300 }, 35, 35 );
         {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
 
-            // TODO: Add any drawing code that uses hdc here...
-
-
-            DrawGrid( hdc, { 100, 100 }, { 300,300 }, 35, 35 );
-            {
-
-                HPEN hPen, oldPen;
-                hPen = CreatePen( PS_DOT, 1, RGB( 255, 0, 0 ) );
-                oldPen = (HPEN)SelectObject( hdc, hPen );
-                DrawCircle( hdc, { 200, 200 }, 100 );
-                SelectObject( hdc, oldPen );
-                DeleteObject( hPen );
-            }
-
-            {
-                HBRUSH hBrush, oldBrush;
-                hBrush = CreateSolidBrush( RGB( 0, 255, 0 ) );
-                oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
-                DrawRect( hdc, { 400,400 }, 50, 60 );
-                SelectObject( hdc, oldBrush );
-                DeleteObject( hBrush );
-            }
-
-            {
-                HBRUSH hBrush, oldBrush;
-                hBrush = (HBRUSH)GetStockObject( NULL_BRUSH );
-                oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
-                DrawPolygonTest( hdc );
-                SelectObject( hdc, oldBrush );
-                DeleteObject( hBrush );
-            }
-
-            Question::DrawSunFlower( hdc, { 600, 600 }, 200, 8 );
-            //Question::DrawStar( hdc, { 300, 300 }, 100, 9 );
-
-            Star<int> s1( { 300,300 }, 100, 5 );
-            s1.Draw(hdc);
-
-            /* Using Pen 
             HPEN hPen, oldPen;
             hPen = CreatePen( PS_DOT, 1, RGB( 255, 0, 0 ) );
             oldPen = (HPEN)SelectObject( hdc, hPen );
-            DrawPolygonTest( hdc );
+            DrawCircle( hdc, { 200, 200 }, 100 );
             SelectObject( hdc, oldPen );
             DeleteObject( hPen );
-            */
-
-
-            EndPaint( hWnd, &ps );
         }
-        break;
+
+        {
+            HBRUSH hBrush, oldBrush;
+            hBrush = CreateSolidBrush( RGB( 0, 255, 0 ) );
+            oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
+            DrawRect( hdc, { 400,400 }, 50, 60 );
+            SelectObject( hdc, oldBrush );
+            DeleteObject( hBrush );
+        }
+
+        {
+            HBRUSH hBrush, oldBrush;
+            hBrush = (HBRUSH)GetStockObject( NULL_BRUSH );
+            oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
+            DrawPolygonTest( hdc );
+            SelectObject( hdc, oldBrush );
+            DeleteObject( hBrush );
+        }
+
+        Question::DrawSunFlower( hdc, { 600, 600 }, 200, 8 );
+        //Question::DrawStar( hdc, { 300, 300 }, 100, 9 );
+
+        Star<int> s1( { 300,300 }, 100, 5 );
+        s1.Draw(hdc);
+
+        /* Using Pen
+        HPEN hPen, oldPen;
+        hPen = CreatePen( PS_DOT, 1, RGB( 255, 0, 0 ) );
+        oldPen = (HPEN)SelectObject( hdc, hPen );
+        DrawPolygonTest( hdc );
+        SelectObject( hdc, oldPen );
+        DeleteObject( hPen );
+        */
+
+        EndPaint( hWnd, &ps );
+        }
+       break;
     case WM_KEYDOWN:
     {
-        if ( wParam == VK_RIGHT )
-        {
-
-        }
+        //q7.P93Q7_GetRectKbdDown(hWnd, wParam);
     }
-        break;
+    break;
     case WM_CHAR:
     {
        
     }
+    break;
     case WM_KEYUP:
     {
-
+        //q7.P93Q7_GetRectKbdUp( hWnd, wParam );
     }
     break;
     case WM_DESTROY:
@@ -276,7 +275,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
     return (INT_PTR)FALSE;
 }
 
-void TextOut( HDC hdc )
+void TextOutTest( HDC hdc )
 {
     TextOut( hdc, 100, 100, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ) );
 
