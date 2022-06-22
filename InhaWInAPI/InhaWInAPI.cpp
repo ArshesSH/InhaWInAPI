@@ -5,9 +5,11 @@
 #include "InhaWInAPI.h"
 
 #include <vector>
+#include <string>
 #include "Question.h"
 #include "GeometricObject.h"
 #include "FrameTimer.h"
+
 
 #define MAX_LOADSTRING 100
 
@@ -177,9 +179,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hWnd, &ps);
 
-            
-
             // TODO: Add any drawing code that uses hdc here...
+
+
             DrawGrid( hdc, { 100, 100 }, { 300,300 }, 35, 35 );
             {
 
@@ -215,10 +217,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             Star<int> s1( { 300,300 }, 100, 5 );
             s1.Draw(hdc);
 
-            
-            TextOut( hdc, 100, dt, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ) );
-            
-
             /* Using Pen 
             HPEN hPen, oldPen;
             hPen = CreatePen( PS_DOT, 1, RGB( 255, 0, 0 ) );
@@ -233,6 +231,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
     case WM_KEYDOWN:
+    {
+        if ( wParam == VK_RIGHT )
+        {
+
+        }
+    }
         break;
     case WM_CHAR:
     {
