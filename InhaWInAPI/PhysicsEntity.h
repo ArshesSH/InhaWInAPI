@@ -16,16 +16,14 @@ public:
 	};
 
 public:
-	PhysicsEntity( PhysicsEntity::Type type )
+	PhysicsEntity( PhysicsEntity::Type type, const Vec2<int>& pos )
 	{
 		std::random_device rd;
 		std::mt19937 rng( rd() );
 		std::uniform_int_distribution<int> sizeGen( 20, 50 );
-		std::uniform_int_distribution<int> posXGen( 50, 1000 );
-		std::uniform_int_distribution<int> posYGen( 50, 1000 );
-		std::uniform_real_distribution<float> speedGen( 0, 10 );
-		std::uniform_real_distribution<float> dirXGen( 0, 1 );
-		std::uniform_real_distribution<float> dirYGen( 0, 1 );
+		std::uniform_real_distribution<float> speedGen( 100, 500 );
+		std::uniform_real_distribution<float> dirXGen( -1, 1 );
+		std::uniform_real_distribution<float> dirYGen( -1, 1 );
 
 		speed = speedGen( rng );
 		dir = { dirXGen( rng ), dirYGen( rng ) };
@@ -34,17 +32,17 @@ public:
 		if ( type == Type::Rect )
 		{
 			const int size = sizeGen( rng );
-			pObj = std::make_unique<Rect<float>>( posXGen( rng ), posYGen( rng ), size, size );
+			pObj = std::make_unique<Rect<float>>( (float)pos.x, (float)pos.y, size, size );
 		}
 		else if ( type == Type::Circle )
 		{
-			pObj = std::make_unique<Circle<float>>( posXGen( rng ), posYGen( rng ), sizeGen( rng ) );
+			pObj = std::make_unique<Circle<float>>( (float)pos.x, (float)pos.y, sizeGen( rng ) );
 		}
 		else if ( type == Type::Star )
 		{
 			std::uniform_int_distribution<int> flareGen( 5, 10 );
-			const Vec2<float> pos{ (float)posXGen( rng ), (float)posYGen( rng ) };
-			pObj = std::make_unique<Star<float>>( pos, sizeGen( rng ), flareGen( rng ) );
+			const Vec2<float> posStar{ (float)pos.x, (float)pos.y };
+			pObj = std::make_unique<Star<float>>( posStar, sizeGen( rng ), flareGen( rng ) );
 		}
 	}
 

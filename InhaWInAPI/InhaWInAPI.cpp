@@ -154,21 +154,27 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     static RECT rcClient;
     static FrameTimer ft;
-
+    static float dt = 0;
     static PhysicsField field;
 
-    float dt = ft.Mark();
-    field.Update(dt);
 
     switch (message)
     {
     case WM_CREATE:
         GetClientRect( hWnd, &rcClient );
-
+        SetTimer( hWnd, 1, 0, nullptr );
         break;
     case WM_TIMER:
     {
         // Called when Timer On
+        dt = ft.Mark();
+        if ( (int)dt % 60 == 0 )
+        {
+            
+        }
+        field.Update( dt );
+        InvalidateRect( hWnd, nullptr, true );
+
 
     }
     break;
@@ -225,7 +231,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     {
-        field.AddCircle();
+        field.AddCircle( {LOWORD(lParam), HIWORD( lParam ) } );
         InvalidateRect( hWnd, nullptr, true );
     }
     break;

@@ -11,9 +11,9 @@ class PhysicsField
 public:
 	PhysicsField() = default;
 	
-	void AddCircle()
+	void AddCircle(const Vec2<int>& pos)
 	{
-		field.emplace_back( PhysicsEntity( PhysicsEntity::Type::Circle ) );
+		field.emplace_back( PhysicsEntity( PhysicsEntity::Type::Circle, pos ) );
 	}
 
 	void Update(float dt)
