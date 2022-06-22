@@ -152,11 +152,24 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     //static Question q7;
+    static Vec2<int> curPos( 30, 30 );
+    static RECT rcClient;
 
     switch (message)
     {
     case WM_CREATE:
+        GetClientRect( hWnd, &rcClient );
+
+        // Create Timer
+        SetTimer( hWnd, 1, 100, nullptr );
         break;
+    case WM_TIMER:
+    {
+        // Called when Timer On
+        curPos.x += 40;
+        InvalidateRect( hWnd, nullptr, true );
+    }
+    break;
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
@@ -228,12 +241,70 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         DeleteObject( hPen );
         */
 
+        /*
+        *         // 화면 크기 얻기
+        RECT rc;
+        GetClientRect( hWnd, &rc );
+        */
+
+
+  
+
+
+        Ellipse( hdc, curPos.x - 20, curPos.y - 20, curPos.x + 20, curPos.y + 20 );
+
+
         EndPaint( hWnd, &ps );
         }
        break;
+    case WM_SIZE:
+    {
+        // 윈도우 창 변경 시
+        GetClientRect( hWnd, &rcClient );
+    }
+    break;
     case WM_KEYDOWN:
     {
         //q7.P93Q7_GetRectKbdDown(hWnd, wParam);
+
+
+        if ( wParam == VK_RIGHT )
+        {
+            curPos.x += 40;
+            if ( curPos.x + 20 > rcClient.right )
+            {
+                curPos.x = rcClient.right - 20;
+            }
+        }
+        if ( wParam == VK_LEFT )
+        {
+            curPos.x -= 40;
+            if ( curPos.x - 20 < rcClient.left )
+            {
+                curPos.x = rcClient.left + 20;
+            }
+        }
+        if ( wParam == VK_UP )
+        {
+            curPos.y -= 40;
+            if ( curPos.y - 20 < rcClient.top )
+            {
+                curPos.y = rcClient.top + 20;
+            }
+        }
+        if ( wParam == VK_DOWN )
+        {
+            curPos.y += 40;
+            if ( curPos.y + 20 > rcClient.bottom )
+            {
+                curPos.y = rcClient.bottom - 20;
+            }
+        }
+
+
+        InvalidateRect( hWnd, nullptr, true );
+
+
     }
     break;
     case WM_CHAR:
@@ -248,6 +319,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
     case WM_DESTROY:
         PostQuitMessage(0);
+
+        //Destroy Timer
+        KillTimer( hWnd, 1 );
         break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
