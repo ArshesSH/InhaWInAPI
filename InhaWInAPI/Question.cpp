@@ -59,7 +59,7 @@ void Question::DrawStar( HDC hdc, POINT center, int outerRadius, int count )
     const double dTheta = MathSH::PI / count;
     const double innerRadius = outerRadius - (outerRadius / (2 * std::tan( (MathSH::PI / 2) - dTheta )));
 
-    DrawStar( hdc, center, outerRadius, innerRadius, count );
+    DrawStar( hdc, center, (int)outerRadius, (int)innerRadius, count );
 }
 
 void Question::DrawStar( HDC hdc, POINT center, int outerRadius, int innerRadius, int count )
@@ -102,7 +102,7 @@ void Question::P93Q7_CreateRect( HDC hdc )
     P93Q7_DrawDirRect( hdc, rectRight, dirRight, L"¿À¸¥ÂÊ" );
 
     std::wstring txt = L"curPos = (" + std::to_wstring( rectPos.x ) + L", " + std::to_wstring( rectPos.y ) + L")";
-    TextOut( hdc, 100, 100, txt.c_str(), txt.size() );
+    TextOut( hdc, 100, 100, txt.c_str(), (int)txt.size() );
 }
 
 void Question::P93Q7_GetRectKbdDown( HWND& hWnd, WPARAM wParam )
@@ -153,6 +153,6 @@ void Question::P93Q7_DrawDirRect( HDC hdc, const Rect<int>& rect, const Vec2<int
     {
         RECT r = rect.GetRECT();
         rect.Draw( hdc );
-        DrawText( hdc, str.c_str(), str.size(), &r, DT_CENTER | DT_VCENTER | DT_SINGLELINE );
+        DrawText( hdc, str.c_str(), (int)str.size(), &r, DT_CENTER | DT_VCENTER | DT_SINGLELINE );
     }
 }

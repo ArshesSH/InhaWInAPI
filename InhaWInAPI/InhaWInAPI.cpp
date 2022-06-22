@@ -6,7 +6,6 @@
 
 #include <vector>
 #include <string>
-#include "Question.h"
 #include "GeometricObject.h"
 #include "FrameTimer.h"
 #include "PhysicsField.h"
@@ -26,22 +25,8 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
 
-static TCHAR str[256];
-static int count, yPos;
-static SIZE size;
+
 static FrameTimer ft;
-
-void TextOutTest( HDC hdc );
-void RemoveText( HWND hWnd, HDC hdc, WPARAM wParam );
-//void DrawLine_Test( HDC hdc );
-void DrawLine( HDC hdc, POINT startPos, POINT endPos );
-void DrawGrid( HDC hdc, POINT leftTop, POINT rightBottom, LONG nWidth, LONG nHeight );
-//void DrawCircle_Test( HDC hdc );
-void DrawCircle( HDC hdc, POINT center, int radius );
-//void DrawRect_Test( HDC hdc );
-void DrawRect( HDC hdc, POINT center, int width, int height );
-void DrawPolygonTest( HDC hdc );
-
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -168,11 +153,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         // Called when Timer On
         dt = ft.Mark();
-        if ( (int)dt % 60 == 0 )
-        {
-            
-        }
-        field.Update( dt );
+        field.Update( dt, rcClient );
         InvalidateRect( hWnd, nullptr, true );
 
 
@@ -202,7 +183,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         // TODO: Add any drawing code that uses hdc here...
         
         std::wstring testDT = std::to_wstring( dt );
-        TextOut( hdc, 100, 100, testDT.c_str(), testDT.size() );
+        TextOut( hdc, 100, 100, testDT.c_str(), (int)testDT.size() );
 
         field.Draw(hdc);
 
@@ -273,107 +254,4 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
-}
-
-void TextOutTest( HDC hdc )
-{
-    TextOut( hdc, 100, 100, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ) );
-
-    GetTextExtentPoint( hdc, str, _tcslen( str ), &size );
-    SetCaretPos( 400 + size.cx, yPos );
-    TextOut( hdc, 400, yPos, str, _tcslen( str ) );
-
-    RECT rc;
-    rc.left = 200;
-    rc.top = 200;
-    rc.right = 500;
-    rc.bottom = 300;
-
-    // Draw Text at RECT
-    SetTextColor( hdc, RGB( 255, 0, 0 ) );
-    DrawText( hdc, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ), &rc, DT_LEFT );
-    SetTextColor( hdc, RGB( 0, 255, 0 ) );
-    DrawText( hdc, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ), &rc, DT_CENTER );
-    SetTextColor( hdc, RGB( 0, 0, 255 ) );
-    DrawText( hdc, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ), &rc, DT_RIGHT );
-
-}
-
-void RemoveText( HWND hWnd, HDC hdc, WPARAM wParam )
-{
-    if ( wParam == VK_BACK && count > 0 )
-    {
-        str[--count] = NULL;
-    }
-    else if ( wParam == VK_RETURN )
-    {
-        yPos += 20;
-    }
-    else
-    {
-        str[count++] = wParam;
-        str[count] = NULL;
-    }
-    InvalidateRect( hWnd, nullptr, true );
-}
-
-void DrawLine_Test( HDC hdc )
-{
-    MoveToEx( hdc, 200, 200, nullptr );
-    LineTo( hdc, 500, 500 );
-}
-
-void DrawLine( HDC hdc, POINT startPos, POINT endPos )
-{
-    MoveToEx( hdc, startPos.x, startPos.y, nullptr );
-    LineTo( hdc, endPos.x, endPos.y );
-}
-
-
-// 격자무늬 그리기
-void DrawGrid( HDC hdc, POINT leftTop, POINT rightBottom, LONG nWidth, LONG nHeight )
-{
-    for ( int y = leftTop.y; y < rightBottom.y; y += nHeight )
-    {
-        DrawLine( hdc, { leftTop.x, y }, { rightBottom.x, y } );
-    }
-    DrawLine( hdc, { rightBottom.x, leftTop.y }, { rightBottom.x, rightBottom.y + 1 } );
-
-    for ( int x = leftTop.x; x < rightBottom.x; x += nWidth )
-    {
-        DrawLine( hdc, { x, leftTop.y }, { x, rightBottom.y } );
-    }
-    DrawLine( hdc, { leftTop.x, rightBottom.y }, { rightBottom.x + 1, rightBottom.y } );
-}
-
-void DrawCircle( HDC hdc, POINT center, int radius )
-{
-    Ellipse( hdc, center.x - radius, center.y - radius, center.x + radius, center.y + radius );
-}
-
-void DrawRect( HDC hdc, POINT center, int width, int height )
-{
-    Rectangle( hdc, center.x - width, center.y - height, center.x + width, center.y + width );
-}
-
-void DrawPolygonTest( HDC hdc )
-{
-    const std::vector<POINT> p = {
-        {10,150},
-        {250,30},
-        {500,150},
-        {350,300},
-        {150,300}
-    };
-    Polygon( hdc, &p[0], p.size() );
-}
-
-void DrawRect_Test( HDC hdc )
-{
-    Rectangle( hdc, 300, 300, 400, 400 );
-}
-
-void DrawCircle_Test( HDC hdc )
-{
-    Ellipse( hdc, 300, 300, 400, 400 );
 }

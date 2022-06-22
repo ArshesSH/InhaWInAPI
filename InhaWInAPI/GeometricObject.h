@@ -5,21 +5,23 @@
 #include "framework.h"
 #include <vector>
 
+
+
 template<typename T>
 class GeometricObject
 {
 public:
 	GeometricObject()
 		:
-		center((T)0, (T)0)
+		center( (T)0, (T)0 )
 	{}
-	GeometricObject(const Vec2<T> center)
+	GeometricObject( const Vec2<T> center )
 		:
-		center(center)
+		center( center )
 	{}
 	GeometricObject( T x, T y )
 		:
-		center(x, y)
+		center( x, y )
 	{}
 	virtual ~GeometricObject() {}
 
@@ -30,6 +32,7 @@ public:
 	virtual bool IsContains( T, T ) const { exit( 1 ); }
 	virtual double GetArea() const { exit( 1 ); };
 	virtual double GetPerimeter() const { exit( 1 ); }
+	virtual RECT GetRECT() const { return { 0,0,0,0 }; };
 	double GetDistanceWith( const GeometricObject<T>& other ) const
 	{
 		const Vec2<T> vDist = other.center - center;
@@ -55,11 +58,20 @@ public:
 	{
 		center = { x, y };
 	}
+	void SetCenterX(T x)
+	{
+		center.x = x;
+	}
+	void SetCenterY( T y )
+	{
+		center.y = y;
+	}
+
 	virtual void Draw( HDC hdc ) const = 0;
 	POINT Vec2ToPoint( const Vec2<T>& v ) const
 	{
 		return POINT( (int)v.x, (int)v.y );
-		
+
 	}
 	Vec2<T> PointToVec2( const POINT& p ) const
 	{
@@ -73,6 +85,8 @@ public:
 	{
 		isSelected = parm;
 	}
+
+
 
 protected:
 	Vec2<T> center;
@@ -162,6 +176,15 @@ public:
 	{
 		return radius;
 	}
+	RECT GetRECT() const override
+	{
+		const int left = (int)(GeometricObject<T>::center.x - radius);
+		const int top = (int)(GeometricObject<T>::center.y - radius);
+		const int right = (int)(GeometricObject<T>::center.x + radius);
+		const int bottom = (int)(GeometricObject<T>::center.y + radius);
+		return { left, top, right, bottom };
+	}
+
 	void Draw(HDC hdc) const override
 	{
 		const int left = (int)(GeometricObject<T>::center.x - radius);
@@ -320,9 +343,9 @@ public:
 	{
 		Rectangle( hdc, (int)left, (int)top, (int)right, (int)bottom );
 	}
-	RECT GetRECT() const
+	RECT GetRECT() const override
 	{
-		return { left, top, right, bottom };
+		return { (int)left, (int)top, (int)right, (int)bottom };
 	}
 
 private:
@@ -355,7 +378,7 @@ public:
 		nFlares( nFlares ),
 		outerRadius( outerRadius ),
 		dTheta( MathSH::PI / nFlares ),
-		innerRadius( (outerRadius* cos( dTheta * 2 )) / (cos( dTheta )) )
+		innerRadius( (T)((outerRadius* cos( dTheta * 2 )) / (cos( dTheta ))) )
 	{
 		MakeStar();
 	}

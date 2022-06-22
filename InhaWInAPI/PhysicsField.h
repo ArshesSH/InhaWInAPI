@@ -16,11 +16,11 @@ public:
 		field.emplace_back( PhysicsEntity( PhysicsEntity::Type::Circle, pos ) );
 	}
 
-	void Update(float dt)
+	void Update(float dt, const RECT& w)
 	{
 		for ( auto& e : field )
 		{
-			e.Update(dt);
+			e.Update(dt, w);
 		}
 	}
 
