@@ -154,6 +154,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     //static Question q7;
     static RECT rcClient;
     static Circle<int> c1( { 30, 30 }, 20 );
+    static Circle<int> c2( { 100,100 }, 30 );
 
     switch (message)
     {
@@ -263,8 +264,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         */
 
 
-        c1.DrawSelected( hdc );
-
         EndPaint( hWnd, &ps );
         }
        break;
@@ -276,41 +275,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
     case WM_KEYDOWN:
     {
-        //q7.P93Q7_GetRectKbdDown(hWnd, wParam);
-
-        //if ( wParam == VK_RIGHT )
-        //{
-        //    curPos.x += 40;
-        //    if ( curPos.x + 20 > rcClient.right )
-        //    {
-        //        curPos.x = rcClient.right - 20;
-        //    }
-        //}
-        //if ( wParam == VK_LEFT )
-        //{
-        //    curPos.x -= 40;
-        //    if ( curPos.x - 20 < rcClient.left )
-        //    {
-        //        curPos.x = rcClient.left + 20;
-        //    }
-        //}
-        //if ( wParam == VK_UP )
-        //{
-        //    curPos.y -= 40;
-        //    if ( curPos.y - 20 < rcClient.top )
-        //    {
-        //        curPos.y = rcClient.top + 20;
-        //    }
-        //}
-        //if ( wParam == VK_DOWN )
-        //{
-        //    curPos.y += 40;
-        //    if ( curPos.y + 20 > rcClient.bottom )
-        //    {
-        //        curPos.y = rcClient.bottom - 20;
-        //    }
-        //}
-
         InvalidateRect( hWnd, nullptr, true );
     }
     break;
@@ -320,7 +284,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
     case WM_KEYUP:
     {
-        //q7.P93Q7_GetRectKbdUp( hWnd, wParam );
     }
     break;
 
@@ -330,6 +293,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         if ( c1.IsContains( mousePos ) )
         {
             c1.SetSelected();
+            
             InvalidateRect( hWnd, nullptr, true );
         }
     }
