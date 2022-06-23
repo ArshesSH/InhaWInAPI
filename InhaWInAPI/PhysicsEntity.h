@@ -21,7 +21,7 @@ public:
 		std::random_device rd;
 		std::mt19937 rng( rd() );
 		std::uniform_int_distribution<int> sizeGen( 20, 50 );
-		std::uniform_real_distribution<float> speedGen( 100, 500 );
+		std::uniform_real_distribution<float> speedGen( 200, 300 );
 		std::uniform_real_distribution<float> dirXGen( -1, 1 );
 		std::uniform_real_distribution<float> dirYGen( -1, 1 );
 
@@ -48,17 +48,67 @@ public:
 
 	void Update(float dt, const RECT& walls)
 	{
+		time += dt;
 		MovePos( dt );
 		DoWallCollision( walls );
-		/*
-		if collide,
-		*/
-
+		if ( isCollide )
+		{
+			if ( time >= 0.03f )
+			{
+				isCollide = false;
+				time = 0.0f;
+			}
+		}
 	}
 
 	void Draw(HDC hdc) const
 	{
 		pObj->Draw( hdc );
+	}
+
+	void SetVelCollisionByTwoPointLine( const Vec2<float>& lhs, const Vec2<float>& rhs )
+	{
+		const Vec2<float> lineDirect = (lhs - rhs).GetNormalized();
+		const Vec2<float> changedVel = lineDirect * (vel * lineDirect) * 2.0f - vel;
+		vel = changedVel;
+	}
+	void SetVelCollisionBy( const Vec2<float>& line )
+	{
+		vel = line * (vel * line) * 2.0f - vel;
+	}
+
+	bool IsCollideWith( const PhysicsEntity& other )
+	{
+		return pObj->IsOverlapWith( *(other.pObj) );
+	}
+
+	Vec2<float> GetCenter() const
+	{
+		return pObj->GetCenter();
+	}
+
+	bool GetCollide() const
+	{
+		return isCollide;
+	}
+	void SetCollide( bool state = true )
+	{
+		isCollide = state;
+	}
+
+	bool operator!=( const PhysicsEntity& rhs ) const
+	{
+		return pObj != rhs.pObj;
+	}
+	
+	void SetCenter(const Vec2<float>& c)
+	{
+		pObj->SetCenter( c );
+	}
+
+	float GetSize() const
+	{
+		return pObj->GetSize();
 	}
 
 private:
@@ -81,10 +131,11 @@ private:
 
 		if ( objRect.left < walls.left )
 		{
-			//const Vec2<float> topLeft( walls.left, walls.top );
-			//const Vec2<float> bottomLeft( walls.left, walls.bottom );
-			//SetVelCollisionByLine( bottomLeft, topLeft );
-
+			/*
+			const Vec2<float> topLeft( walls.left, walls.top );
+			const Vec2<float> bottomLeft( walls.left, walls.bottom );
+			SetVelCollisionByTwoPointLine( bottomLeft, topLeft );
+			*/
 			pObj->SetCenterX( pObj->GetCenterX() + walls.left - objRect.left );
 			ReboundX();
 		}
@@ -105,16 +156,12 @@ private:
 			ReboundY();
 		}
 	}
-	void SetVelCollisionByLine(const Vec2<float>& lhs, const Vec2<float>& rhs)
-	{
-		const Vec2<float> lineDirect = (lhs - rhs).GetNormalized();
-		const Vec2<float> changedVel = lineDirect * (vel * lineDirect) * 2.0f - vel;
-		vel = changedVel;
-	}
 
 private:
 	std::unique_ptr<GeometricObject<float>> pObj;
 	Vec2<float> vel;
 	float speed;
+	float time = 0;
+	bool isCollide = false;
 };
 

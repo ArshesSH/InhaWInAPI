@@ -93,6 +93,16 @@ public:
 		}
 		return *this;
 	}
+
+	Vec2 GetNormalRightVec2() const
+	{
+		return { y, -x };
+	}
+	Vec2 GetNormalLeftVec2() const
+	{
+		return { -y, x };
+	}
+
 	static T GetCrossProduct( const Vec2& lhs, const Vec2& rhs )
 	{
 		return T(lhs.x * rhs.y - lhs.y * rhs.x);

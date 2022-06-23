@@ -222,6 +222,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
     break;
 
+    case WM_LBUTTONDOWN:
+    {
+        field.AddCircle( { LOWORD( lParam ), HIWORD( lParam ) } );
+        InvalidateRect( hWnd, nullptr, true );
+    }
+    break;
+
     case WM_MOUSEMOVE:
     {
     }

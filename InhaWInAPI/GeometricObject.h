@@ -26,6 +26,7 @@ public:
 	virtual ~GeometricObject() {}
 
 	virtual bool IsOverlapWith( const GeometricObject<T>& ) const { exit( 1 ); }
+	virtual bool IsCollideWith( const GeometricObject<T>& ) const { return false; }
 	virtual bool IsContainedBy( const GeometricObject<T>& ) const { exit( 1 ); }
 	virtual bool IsContains( const GeometricObject<T>& ) const { exit( 1 ); }
 	virtual bool IsContains( const Vec2<T>& ) const { exit( 1 ); }
@@ -33,6 +34,7 @@ public:
 	virtual double GetArea() const { exit( 1 ); };
 	virtual double GetPerimeter() const { exit( 1 ); }
 	virtual RECT GetRECT() const { return { 0,0,0,0 }; };
+	virtual T GetSize() const { return (T)0; };
 	double GetDistanceWith( const GeometricObject<T>& other ) const
 	{
 		const Vec2<T> vDist = other.center - center;
@@ -123,6 +125,12 @@ public:
 			exit( 1 );
 		}
 	}
+	bool IsOverlapWith( const Circle<T>& other ) const
+	{
+		const Vec2<T> distance = GeometricObject<T>::center - other->center;
+		const T sumOfRadius = radius + other->radius;
+		return distance.GetLength() < sumOfRadius;
+	}
 	bool IsContainedBy( const GeometricObject<T>& other ) const override
 	{
 		if ( const Circle<T>* pCircle = dynamic_cast<const Circle<T>*>(&other) )
@@ -173,6 +181,10 @@ public:
 		radius = r;
 	}
 	T GetRadius() const
+	{
+		return radius;
+	}
+	T GetSize() const override
 	{
 		return radius;
 	}
@@ -338,6 +350,10 @@ public:
 	{
 		SetCenter( { x, y } );
 		SetVertices();
+	}
+	T GetSize() const override
+	{
+		return width;
 	}
 	void Draw( HDC hdc ) const override
 	{
