@@ -51,6 +51,7 @@ public:
 		time += dt;
 		MovePos( dt );
 		DoWallCollision( walls );
+
 		if ( isCollide )
 		{
 			if ( time >= 0.03f )
@@ -63,7 +64,8 @@ public:
 
 	void Draw(HDC hdc) const
 	{
-		pObj->Draw( hdc );
+		//pObj->Draw( hdc );
+		pObj->DrawTransformed( hdc, Mat3::Rotation( angle ) * Mat3::Scale( scale ) );
 	}
 
 	void SetVelCollisionByTwoPointLine( const Vec2<float>& lhs, const Vec2<float>& rhs )
@@ -110,6 +112,51 @@ public:
 	{
 		return pObj->GetSize();
 	}
+	void SetAngle( float angle_in )
+	{
+		angle = angle_in;
+	}
+	float GetAngle() const
+	{
+		return angle;
+	}
+	void SetScale(float scale_in)
+	{
+		scale = scale_in;
+	}
+	float GetScale() const
+	{
+		return scale;
+	}
+
+	void DoEntityCollisionWith( PhysicsEntity& other )
+	{
+		// For Circle
+		if ( IsCollideWith( other ) && *this != other && !GetCollide() && !other.GetCollide() )
+		{
+			// Get this and target's distance Vector and normal Vec
+			const Vec2<float> distVec = other.GetCenter() - GetCenter();
+			const Vec2<float> normalVec = distVec.GetNormalRightVec2().GetNormalized();
+
+			// Calc half Distance and Move Center of this and target
+			const float thisSize = GetSize();
+			const float otherSize = other.GetSize();
+			const float halfDistance = (thisSize + otherSize - distVec.GetLength()) / 2;
+
+			SetCenter( GetCenter() - distVec.GetNormalized() * halfDistance );
+			other.SetCenter( other.GetCenter() + distVec.GetNormalized() * halfDistance );
+
+			// Calc Velocity from dist-normal Vec
+			other.SetVelCollisionBy( normalVec );
+			SetVelCollisionBy( normalVec );
+
+			// Set Collide to true for avoid ovelap (Update to false at Entity Update)
+			SetCollide();
+			other.SetCollide();
+		}
+	}
+
+
 
 private:
 	void MovePos( float dt )
@@ -131,11 +178,6 @@ private:
 
 		if ( objRect.left < walls.left )
 		{
-			/*
-			const Vec2<float> topLeft( walls.left, walls.top );
-			const Vec2<float> bottomLeft( walls.left, walls.bottom );
-			SetVelCollisionByTwoPointLine( bottomLeft, topLeft );
-			*/
 			pObj->SetCenterX( pObj->GetCenterX() + walls.left - objRect.left );
 			ReboundX();
 		}
@@ -156,11 +198,18 @@ private:
 			ReboundY();
 		}
 	}
+	void ApplyTransformation( const Mat3& transformation_in )
+	{
+		transform = transformation_in * transform;
+	}
 
 private:
 	std::unique_ptr<GeometricObject<float>> pObj;
 	Vec2<float> vel;
+	Mat3 transform = Mat3::Identity();
 	float speed;
+	float scale = 1.0f;
+	float angle = 0.0f;
 	float time = 0;
 	bool isCollide = false;
 };

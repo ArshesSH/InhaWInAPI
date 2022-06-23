@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vec2.h"
+#include "Mat3.h"
 #include "MathSH.h"
 #include "framework.h"
 #include <vector>
@@ -25,14 +26,14 @@ public:
 	{}
 	virtual ~GeometricObject() {}
 
-	virtual bool IsOverlapWith( const GeometricObject<T>& ) const { exit( 1 ); }
+	virtual bool IsOverlapWith( const GeometricObject<T>& ) const { return false; }
 	virtual bool IsCollideWith( const GeometricObject<T>& ) const { return false; }
-	virtual bool IsContainedBy( const GeometricObject<T>& ) const { exit( 1 ); }
-	virtual bool IsContains( const GeometricObject<T>& ) const { exit( 1 ); }
-	virtual bool IsContains( const Vec2<T>& ) const { exit( 1 ); }
-	virtual bool IsContains( T, T ) const { exit( 1 ); }
-	virtual double GetArea() const { exit( 1 ); };
-	virtual double GetPerimeter() const { exit( 1 ); }
+	virtual bool IsContainedBy( const GeometricObject<T>& ) const { return false; }
+	virtual bool IsContains( const GeometricObject<T>& ) const { return false; }
+	virtual bool IsContains( const Vec2<T>& ) const { return false; }
+	virtual bool IsContains( T, T ) const { return false; }
+	virtual double GetArea() const { return 0; };
+	virtual double GetPerimeter() const { return 0; }
 	virtual RECT GetRECT() const { return { 0,0,0,0 }; };
 	virtual T GetSize() const { return (T)0; };
 	double GetDistanceWith( const GeometricObject<T>& other ) const
@@ -70,6 +71,7 @@ public:
 	}
 
 	virtual void Draw( HDC hdc ) const = 0;
+	virtual void DrawTransformed( HDC hdc, const Mat3 transform_in ) const { return; }
 	POINT Vec2ToPoint( const Vec2<T>& v ) const
 	{
 		return POINT( (int)v.x, (int)v.y );
@@ -119,11 +121,6 @@ public:
 			const T sumOfRadius = radius + pCircle->radius;
 			return distance.GetLength() < sumOfRadius;
 		}
-		else
-		{
-			OutputDebugStringW( L"Circle::IsOverlapWith(const GeometricObject<T>& other) const override, other's type mismatch!!!" );
-			exit( 1 );
-		}
 	}
 	bool IsOverlapWith( const Circle<T>& other ) const
 	{
@@ -139,11 +136,6 @@ public:
 			const T difference = pCircle->radius - radius;
 			return distanceSq.GetLength() < difference;
 		}
-		else
-		{
-			OutputDebugStringW( L"Circle::IsContainedBy( const GeometricObject<T>& other ) const override, other's type mismatch!!!" );
-			exit( 1 );
-		}
 	}
 	bool IsContains( const GeometricObject<T>& other ) const override
 	{
@@ -152,11 +144,6 @@ public:
 			const Vec2<T> distance = pCircle->center - GeometricObject<T>::center;
 			const T difference = radius - pCircle->radius;
 			return distance.GetLength() > difference;
-		}
-		else
-		{
-			OutputDebugStringW( L"Circle::IsContains( const GeometricObject<T>& other ) const override, other's type mismatch!!!" );
-			exit( 1 );
 		}
 	}
 	bool IsContains( const Vec2<T>& p ) const override
@@ -206,6 +193,11 @@ public:
 
 		Ellipse( hdc, left, top, right, bottom );
 	}
+	void DrawTransformed( HDC hdc, const Mat3 transform_in ) const override
+	{
+		Draw( hdc );
+	}
+
 	void DrawColor( HDC hdc, COLORREF color = 0xFFFFFF ) const
 	{
 		const int left = (int)(GeometricObject<T>::center.x - radius);
@@ -277,11 +269,6 @@ public:
 		{
 			return right > pRect->left && left < pRect->right&& top > pRect->bottom && bottom < pRect->top;
 		}
-		else
-		{
-			OutputDebugStringW( L"Rect::IsOverlapWith( const GeometricObject<T>& other ) const override, other's type mismatch!!!" );
-			exit( 1 );
-		}
 	}
 	bool IsContainedBy( const GeometricObject<T>& other ) const override
 	{
@@ -289,22 +276,12 @@ public:
 		{
 			return pRect->top >= top && pRect->bottom <= bottom && pRect->left <= left && pRect->right >= right;
 		}
-		else
-		{
-			OutputDebugStringW( L"Rect::IsContainedBy( const GeometricObject<T>& other ) const override, other's type mismatch!!!" );
-			exit( 1 );
-		}
 	}
 	bool IsContains( const GeometricObject<T>& other ) const override
 	{
 		if ( const Rect<T>* pRect = dynamic_cast<const Rect<T>*>(&other) )
 		{
 			return (pRect->top <= top && pRect->bottom >= bottom && pRect->left >= left && pRect->right <= right);
-		}
-		else
-		{
-			OutputDebugStringW( L"Rect::IsContains( const GeometricObject<T>& other ) const override, other's type mismatch!!!" );
-			exit( 1 );
 		}
 	}
 	bool IsContains( const Vec2<T>& point ) const override
@@ -357,7 +334,30 @@ public:
 	}
 	void Draw( HDC hdc ) const override
 	{
-		Rectangle( hdc, (int)left, (int)top, (int)right, (int)bottom );
+		const POINT topLeft = { (int)left, (int)top };
+		const POINT topRight = { (int)right, (int)top };
+		const POINT bottomRight = { (int)right, (int)bottom };
+		const POINT bottomLeft = { (int)left, (int)bottom };
+
+		const std::vector<POINT> vertices = { topLeft, topRight, bottomRight, bottomLeft };
+
+		Polygon( hdc, &vertices[0], vertices.size() );
+	}
+
+	void DrawTransformed( HDC hdc, const Mat3 transform_in ) const override
+	{
+		Vec2<T> topLeftVec = { left, top };
+		Vec2<T> topRightVec = { right, top };
+		Vec2<T> bottomRightVec = { right, bottom };
+		Vec2<T> bottomLeftVec = { left, bottom };
+
+		const POINT topLeft = { (int)topLeftVec.x, (int)topLeftVec.y };
+		const POINT topRight = { (int)topRightVec.x, (int)topRightVec.y };
+		const POINT bottomRight = { (int)bottomRightVec.x, (int)bottomRightVec.y };
+		const POINT bottomLeft = { (int)bottomLeftVec.x, (int)bottomLeftVec.y };
+
+		const std::vector<POINT> vertices = { topLeft, topRight, bottomRight, bottomLeft };
+		Polygon( hdc, &vertices[0], vertices.size() );
 	}
 	RECT GetRECT() const override
 	{
@@ -371,8 +371,8 @@ private:
 		const T halfHeight = T( height / 2.0 );
 		left = GeometricObject<T>::center.x - halfWidth;
 		right = GeometricObject<T>::center.x + halfWidth;
-		top = GeometricObject<T>::center.y + halfHeight;
-		bottom = GeometricObject<T>::center.y - halfHeight;
+		top = GeometricObject<T>::center.y - halfHeight;
+		bottom = GeometricObject<T>::center.y + halfHeight;
 	}
 
 private:

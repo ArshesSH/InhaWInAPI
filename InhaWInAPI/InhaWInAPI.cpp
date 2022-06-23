@@ -222,9 +222,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
     break;
 
-    case WM_LBUTTONDOWN:
+    case WM_RBUTTONDOWN:
     {
-        field.AddCircle( { LOWORD( lParam ), HIWORD( lParam ) } );
+        field.AddRect( { LOWORD( lParam ), HIWORD( lParam ) } );
         InvalidateRect( hWnd, nullptr, true );
     }
     break;

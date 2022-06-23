@@ -16,14 +16,21 @@ public:
 		field.emplace_back( PhysicsEntity( PhysicsEntity::Type::Circle, pos ) );
 	}
 
+	void AddRect( const Vec2<int>& pos )
+	{
+		field.emplace_back( PhysicsEntity( PhysicsEntity::Type::Rect, pos ) );
+	}
+
 	void Update(float dt, const RECT& w)
 	{
 		for ( auto& e : field )
 		{
 			e.Update(dt, w);
-			DoCircleCollision( e );
+			for ( auto& other : field )
+			{
+				e.DoEntityCollisionWith( other );
+			}
 		}
-
 	}
 
 	void Draw(HDC hdc) const
@@ -35,26 +42,30 @@ public:
 	}
 
 private:
-	void DoCircleCollision(PhysicsEntity& e)
+	void DoEntityCollision(PhysicsEntity& e)
 	{
 		for ( auto& target : field )
 		{
+			// For Circle
 			if ( e.IsCollideWith(target) && e != target && !e.GetCollide() && !target.GetCollide() )
 			{
-				const Vec2<float> distVecToE = target.GetCenter() - e.GetCenter();
-				const Vec2<float> distVecToTarget = e.GetCenter() - target.GetCenter();
+				// Get this and target's distance Vector and normal Vec
+				const Vec2<float> distVec = target.GetCenter() - e.GetCenter();
+				const Vec2<float> normalVec = distVec.GetNormalRightVec2().GetNormalized();
 
-
-				const Vec2<float> normalVec = distVecToE.GetNormalRightVec2().GetNormalized();
-					
-				target.SetVelCollisionBy( normalVec );
-				e.SetVelCollisionBy( normalVec );
+				// Calc half Distance and Move Center of this and target
 				const float eSize = e.GetSize();
 				const float targetSize = target.GetSize();
-				const float halfDistance = (eSize + targetSize - distVecToE.GetLength()) / 2;
-				e.SetCenter( e.GetCenter() - distVecToE.GetNormalized() * halfDistance );
-				target.SetCenter( target.GetCenter() - distVecToTarget.GetNormalized() * halfDistance );
-				
+				const float halfDistance = (eSize + targetSize - distVec.GetLength()) / 2;
+
+				e.SetCenter( e.GetCenter() - distVec.GetNormalized() * halfDistance );
+				target.SetCenter( target.GetCenter() + distVec.GetNormalized() * halfDistance );
+
+				// Calc Velocity from dist-normal Vec
+				target.SetVelCollisionBy( normalVec );
+				e.SetVelCollisionBy( normalVec );
+					
+				// Set Collide to true for avoid ovelap (Update to false at Entity Update)
 				e.SetCollide();
 				target.SetCollide();
 			}
