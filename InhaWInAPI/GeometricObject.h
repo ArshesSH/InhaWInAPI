@@ -357,10 +357,10 @@ public:
 
 	void DrawTransformed( HDC hdc, const Mat3<T> transform_in ) const override
 	{
-		Vec2<T> topLeftVec = transform_in * Vec2<T>{ (T)left, (T)top };
-		Vec2<T> topRightVec = transform_in * Vec2<T>{ (T)right, (T)top };
-		Vec2<T> bottomRightVec = transform_in * Vec2<T> { (T)right, (T)bottom };
-		Vec2<T> bottomLeftVec = transform_in * Vec2<T>{ (T)left, (T)bottom };
+		const Vec2<T> topLeftVec = transform_in * (GeometricObject<T>::center - Vec2<T>{ (T)left, (T)top }) + GeometricObject<T>::center;
+		const Vec2<T> topRightVec = transform_in * (GeometricObject<T>::center - Vec2<T>{ (T)right, (T)top }) + GeometricObject<T>::center;
+		const Vec2<T> bottomRightVec = transform_in * (GeometricObject<T>::center - Vec2<T> { (T)right, (T)bottom }) + GeometricObject<T>::center;
+		const Vec2<T> bottomLeftVec = transform_in * (GeometricObject<T>::center - Vec2<T>{ (T)left, (T)bottom }) + GeometricObject<T>::center;
 
 		const POINT topLeft = { (int)topLeftVec.x, (int)topLeftVec.y };
 		const POINT topRight = { (int)topRightVec.x, (int)topRightVec.y };
@@ -370,17 +370,6 @@ public:
 		const std::vector<POINT> vertices = { topLeft, topRight, bottomRight, bottomLeft };
 
 		Polygon( hdc, &vertices[0], vertices.size() );
-
-		//POINT cur = topLeft;
-		//for ( auto i = vertices.begin(); i != std::prev( vertices.end() ); ++i )
-		//{
-		//	const POINT next = *std::next( i );
-		//	MoveToEx( hdc, cur.x, cur.y, nullptr );
-		//	LineTo( hdc, next.x, next.y );
-		//	cur = next;
-		//}
-
-
 	}
 	RECT GetRECT() const override
 	{

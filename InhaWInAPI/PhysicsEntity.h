@@ -24,14 +24,16 @@ public:
 		std::uniform_real_distribution<float> speedGen( 200, 300 );
 		std::uniform_real_distribution<float> dirXGen( -1, 1 );
 		std::uniform_real_distribution<float> dirYGen( -1, 1 );
+		std::uniform_real_distribution<float> rotateGen( -2, 2 );
 
 		speed = speedGen( rng );
 		vel = { dirXGen( rng ), dirYGen( rng ) };
 		vel *= speed;
+		spinFreq = rotateGen( rng ) * MathSH::PI;
 
 		if ( type == Type::Rect )
 		{
-			const int size = sizeGen( rng );
+			const int size = sizeGen( rng ) * 2;
 			pObj = std::make_unique<Rect<float>>( (float)pos.x, (float)pos.y, size, size );
 		}
 		else if ( type == Type::Circle )
@@ -50,10 +52,9 @@ public:
 	{
 		time += dt;
 		collideTime += dt;
-		//MovePos( dt );
+		MovePos( dt );
 		DoWallCollision( walls );
-		SetAngle( 0.5 * MathSH::PI * time );
-
+		SetAngle( spinFreq * time );
 		if ( isCollide )
 		{
 			if ( collideTime >= 0.03f )
@@ -212,6 +213,7 @@ private:
 	float speed;
 	float scale = 1.0f;
 	float angle = 0.0f;
+	float spinFreq = 0.0f;
 	float time = 0.0f;
 	float collideTime = 0.0f;
 	bool isCollide = false;
