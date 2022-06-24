@@ -50,7 +50,7 @@ public:
 	{
 		time += dt;
 		collideTime += dt;
-		MovePos( dt );
+		//MovePos( dt );
 		DoWallCollision( walls );
 		SetAngle( 0.5 * MathSH::PI * time );
 
