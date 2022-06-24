@@ -29,7 +29,7 @@ public:
 		speed = speedGen( rng );
 		vel = { dirXGen( rng ), dirYGen( rng ) };
 		vel *= speed;
-		spinFreq = rotateGen( rng ) * MathSH::PI;
+		spinFreq = (float)(rotateGen( rng ) * MathSH::PI);
 
 		if ( type == Type::Rect )
 		{
@@ -86,6 +86,11 @@ public:
 	bool IsCollideWith( const PhysicsEntity& other )
 	{
 		return pObj->IsOverlapWith( *(other.pObj) );
+	}
+
+	bool IsCollideWith_SAT( const PhysicsEntity& other )
+	{
+		return pObj->GeometricOverlap_SAT( *(other.pObj) );
 	}
 
 	Vec2<float> GetCenter() const
@@ -157,6 +162,25 @@ public:
 			// Set Collide to true for avoid ovelap (Update to false at Entity Update)
 			SetCollide();
 			other.SetCollide();
+		}
+
+		if ( IsCollideWith_SAT( other ) && *this != other )
+		{
+			// Get this and target's distance Vector and normal Vec
+			const Vec2<float> distVec = other.GetCenter() - GetCenter();
+			const Vec2<float> normalVec = distVec.GetNormalRightVec2().GetNormalized();
+
+			// Calc half Distance and Move Center of this and target
+			const float thisSize = GetSize();
+			const float otherSize = other.GetSize();
+			const float halfDistance = (thisSize + otherSize - distVec.GetLength()) / 2;
+
+			SetCenter( GetCenter() - distVec.GetNormalized() * halfDistance );
+			other.SetCenter( other.GetCenter() + distVec.GetNormalized() * halfDistance );
+
+			// Calc Velocity from dist-normal Vec
+			other.SetVelCollisionBy( normalVec );
+			SetVelCollisionBy( normalVec );
 		}
 	}
 

@@ -15,15 +15,21 @@ public:
 	GeometricObject()
 		:
 		center( (T)0, (T)0 )
-	{}
+	{
+		vertices.push_back( center );
+	}
 	GeometricObject( const Vec2<T> center )
 		:
 		center( center )
-	{}
+	{
+		vertices.push_back( center );
+	}
 	GeometricObject( T x, T y )
 		:
 		center( x, y )
-	{}
+	{
+		vertices.push_back( center );
+	}
 	virtual ~GeometricObject() {}
 
 	virtual bool IsOverlapWith( const GeometricObject<T>& ) const { return false; }
@@ -101,6 +107,50 @@ public:
 		transform =  transform_in;
 	}
 
+	bool GeometricOverlap_SAT(  GeometricObject<T>& other )
+	{
+		GeometricObject<T>* shape1 = this;
+		GeometricObject<T>* shape2 = &other;
+
+		for ( int shape = 0; shape < 2; ++shape )
+		{
+			if ( shape == 1 )
+			{
+				shape1 = &other;
+				shape2 = this;
+			}
+			for ( int vIdx = 0; vIdx < shape1->vertices.size(); ++vIdx )
+			{
+				const int vIdxNext = (vIdx + 1) % shape1->vertices.size();
+				Vec2<T> axisProj = (shape1->vertices[vIdx] - shape1->vertices[vIdxNext]).GetNormalLeftVec2();
+
+				float minThis = INFINITY;
+				float maxThis = -INFINITY;
+				for ( auto e : shape1->vertices )
+				{
+					const float p = e * axisProj;
+					minThis = (std::min)(minThis, p);
+					maxThis = (std::max)(maxThis, p);
+				}
+
+				float minOther = INFINITY;
+				float maxOther = -INFINITY;
+				for ( auto e : shape2->vertices )
+				{
+					const float p = e * axisProj;
+					minOther = (std::min)(minOther, p);
+					maxOther = (std::max)(maxOther, p);
+				}
+
+				if ( !(maxOther >= minThis && maxThis >= minOther) )
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+	}
+
 protected:
 	Vec2<T> center;
 	std::vector<Vec2<T>> vertices;
@@ -117,7 +167,8 @@ public:
 		:
 		GeometricObject<T>(center),
 		radius(radius)
-	{}
+	{
+	}
 	Circle(T x, T y, T radius)
 		:
 		GeometricObject<T>( x, y ),
@@ -485,7 +536,7 @@ private:
 		for ( int i = 0; i < nFlares * 2; ++i )
 		{
 			const double rad = (i % 2 == 0) ? outerRadius : innerRadius;
-			const Vec2<T> tranformedVec = GeometricObject<T>::transform * Vec2<T>( (T)rad* cos( i* dTheta ), (T)rad* sin( i* dTheta ) );
+			const Vec2<T> tranformedVec = GeometricObject<T>::transform * Vec2<T>( (T)(rad* cos( i* dTheta )), (T)(rad* sin( i* dTheta )) );
 			GeometricObject<T>::vertices[i] = tranformedVec + GeometricObject<T>::center;
 		}
 	}
