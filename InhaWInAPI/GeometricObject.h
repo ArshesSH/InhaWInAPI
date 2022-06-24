@@ -71,7 +71,7 @@ public:
 	}
 
 	virtual void Draw( HDC hdc ) const = 0;
-	virtual void DrawTransformed( HDC hdc, const Mat3 transform_in ) const { return; }
+	virtual void DrawTransformed( HDC hdc, const Mat3<float> transform_in ) const { return; }
 	POINT Vec2ToPoint( const Vec2<T>& v ) const
 	{
 		return POINT( (int)v.x, (int)v.y );
@@ -121,6 +121,7 @@ public:
 			const T sumOfRadius = radius + pCircle->radius;
 			return distance.GetLength() < sumOfRadius;
 		}
+		return false;
 	}
 	bool IsOverlapWith( const Circle<T>& other ) const
 	{
@@ -136,6 +137,7 @@ public:
 			const T difference = pCircle->radius - radius;
 			return distanceSq.GetLength() < difference;
 		}
+		return false;
 	}
 	bool IsContains( const GeometricObject<T>& other ) const override
 	{
@@ -145,6 +147,7 @@ public:
 			const T difference = radius - pCircle->radius;
 			return distance.GetLength() > difference;
 		}
+		return false;
 	}
 	bool IsContains( const Vec2<T>& p ) const override
 	{
@@ -193,7 +196,7 @@ public:
 
 		Ellipse( hdc, left, top, right, bottom );
 	}
-	void DrawTransformed( HDC hdc, const Mat3 transform_in ) const override
+	void DrawTransformed( HDC hdc, const Mat3<float> transform_in ) const override
 	{
 		Draw( hdc );
 	}
@@ -269,6 +272,7 @@ public:
 		{
 			return right > pRect->left && left < pRect->right&& top > pRect->bottom && bottom < pRect->top;
 		}
+		return false;
 	}
 	bool IsContainedBy( const GeometricObject<T>& other ) const override
 	{
@@ -276,6 +280,7 @@ public:
 		{
 			return pRect->top >= top && pRect->bottom <= bottom && pRect->left <= left && pRect->right >= right;
 		}
+		return false;
 	}
 	bool IsContains( const GeometricObject<T>& other ) const override
 	{
@@ -283,6 +288,7 @@ public:
 		{
 			return (pRect->top <= top && pRect->bottom >= bottom && pRect->left >= left && pRect->right <= right);
 		}
+		return false;
 	}
 	bool IsContains( const Vec2<T>& point ) const override
 	{
@@ -344,12 +350,13 @@ public:
 		Polygon( hdc, &vertices[0], vertices.size() );
 	}
 
-	void DrawTransformed( HDC hdc, const Mat3 transform_in ) const override
+	void DrawTransformed( HDC hdc, const Mat3<float> transform_in ) const override
 	{
-		Vec2<T> topLeftVec = { left, top };
-		Vec2<T> topRightVec = { right, top };
-		Vec2<T> bottomRightVec = { right, bottom };
-		Vec2<T> bottomLeftVec = { left, bottom };
+		Vec2<float> topLeftVec = { left, top };
+		Vec2<float> topRightVec = { right, top };
+		Vec2<float> bottomRightVec = { right, bottom };
+		Vec2<float> bottomLeftVec = { left, bottom };
+
 
 		const POINT topLeft = { (int)topLeftVec.x, (int)topLeftVec.y };
 		const POINT topRight = { (int)topRightVec.x, (int)topRightVec.y };

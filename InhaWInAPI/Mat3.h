@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vec3.h"
+#include "Vec2W.h"
 
 template<typename T>
 class Mat3
@@ -8,11 +8,11 @@ class Mat3
 public:
 	Vec2<T> operator*( const Vec2<T>& v )const
 	{
-		return Vec2<T>( *this * (Vec3<T>)v );
+		return Vec2<T>( *this * (Vec2W<T>)v );
 	}
-	Vec3<T> operator*( const Vec3<T>& v ) const
+	Vec2W<T> operator*( const Vec2W<T>& v ) const
 	{
-		Vec3<T> vout;
+		Vec2W<T> vout;
 		vout.x = cells[0][0] * v.x + cells[0][1] * v.y + cells[0][2] * v.w;
 		vout.y = cells[1][0] * v.x + cells[1][1] * v.y + cells[1][2] * v.w;
 		vout.w = cells[2][0] * v.x + cells[2][1] * v.y + cells[2][2] * v.w;
@@ -96,6 +96,3 @@ public:
 	// [row][col]
 	T cells[3][3];
 };
-
-using Maf3 = Mat3<float>;
-using Mad3 = Mat3<double>;

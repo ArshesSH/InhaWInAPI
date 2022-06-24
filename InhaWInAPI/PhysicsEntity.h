@@ -65,7 +65,7 @@ public:
 	void Draw(HDC hdc) const
 	{
 		//pObj->Draw( hdc );
-		pObj->DrawTransformed( hdc, Mat3::Rotation( angle ) * Mat3::Scale( scale ) );
+		pObj->DrawTransformed( hdc, Mat3<float>::Rotation( angle ) * Mat3<float>::Scale( scale ) );
 	}
 
 	void SetVelCollisionByTwoPointLine( const Vec2<float>& lhs, const Vec2<float>& rhs )
@@ -198,7 +198,7 @@ private:
 			ReboundY();
 		}
 	}
-	void ApplyTransformation( const Mat3& transformation_in )
+	void ApplyTransformation( const Mat3<float>& transformation_in )
 	{
 		transform = transformation_in * transform;
 	}
@@ -206,7 +206,7 @@ private:
 private:
 	std::unique_ptr<GeometricObject<float>> pObj;
 	Vec2<float> vel;
-	Mat3 transform = Mat3::Identity();
+	Mat3<float> transform = Mat3<float>::Identity();
 	float speed;
 	float scale = 1.0f;
 	float angle = 0.0f;

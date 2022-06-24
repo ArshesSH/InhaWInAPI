@@ -57,7 +57,7 @@
     <ClInclude Include="PhysicsEntity.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vec3_Origin.h">
+    <ClInclude Include="Vec2W.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

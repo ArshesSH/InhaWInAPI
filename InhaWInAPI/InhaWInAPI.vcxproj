@@ -152,8 +152,8 @@
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Vec2.h" />
+    <ClInclude Include="Vec2W.h" />
     <ClInclude Include="Vec3.h" />
-    <ClInclude Include="Vec3_Origin.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FrameTimer.cpp" />
