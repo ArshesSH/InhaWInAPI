@@ -42,7 +42,7 @@ public:
 		}
 		else if ( type == Type::Star )
 		{
-			std::uniform_int_distribution<int> flareGen( 5, 10 );
+			std::uniform_int_distribution<int> flareGen( 5, 12 );
 			const Vec2<float> posStar{ (float)pos.x, (float)pos.y };
 			pObj = std::make_unique<Star<float>>( posStar, sizeGen( rng ), flareGen( rng ) );
 		}
@@ -55,6 +55,7 @@ public:
 		MovePos( dt );
 		DoWallCollision( walls );
 		SetAngle( spinFreq * time );
+		pObj->ApplyTransformation( Mat3<float>::Rotation( angle ) );
 		if ( isCollide )
 		{
 			if ( collideTime >= 0.03f )
@@ -67,8 +68,8 @@ public:
 
 	void Draw(HDC hdc) const
 	{
-		//pObj->Draw( hdc );
-		pObj->DrawTransformed( hdc, Mat3<float>::Rotation( angle ) * Mat3<float>::Scale( scale ) );
+		pObj->Draw( hdc );
+		//pObj->DrawTransformed( hdc, Mat3<float>::Rotation( angle ) * Mat3<float>::Scale( scale ) );
 	}
 
 	void SetVelCollisionByTwoPointLine( const Vec2<float>& lhs, const Vec2<float>& rhs )

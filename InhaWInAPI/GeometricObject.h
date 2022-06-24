@@ -71,7 +71,7 @@ public:
 	}
 
 	virtual void Draw( HDC hdc ) const = 0;
-	virtual void DrawTransformed( HDC hdc, const Mat3<T> transform_in ) const { return; }
+	virtual void DrawTransformed( HDC hdc, const Mat3<T>& transform_in ) const { return; }
 	POINT Vec2ToPoint( const Vec2<T>& v ) const
 	{
 		return POINT( (int)v.x, (int)v.y );
@@ -89,10 +89,22 @@ public:
 	{
 		isSelected = parm;
 	}
-
+	void TransformVertices( const Mat3<T>& transform )
+	{
+		for ( auto& v : vertices )
+		{
+			v = transform * v;
+		}
+	}
+	void ApplyTransformation(const Mat3<T>& transform_in )
+	{
+		transform =  transform_in;
+	}
 
 protected:
 	Vec2<T> center;
+	std::vector<Vec2<T>> vertices;
+	Mat3<T> transform = Mat3<T>::Identity();
 	bool isSelected = false;
 };
 
@@ -195,7 +207,7 @@ public:
 
 		Ellipse( hdc, left, top, right, bottom );
 	}
-	void DrawTransformed( HDC hdc, const Mat3<T> transform_in ) const override
+	void DrawTransformed( HDC hdc, const Mat3<T>& transform_in ) const override
 	{
 		Draw( hdc );
 	}
@@ -245,6 +257,7 @@ public:
 		width( (T)1 ),
 		height( (T)1 )
 	{
+		GeometricObject<T>::vertices.resize( 4 );
 		SetVertices();
 	}
 	Rect( const Vec2<T>& center, T width, T height )
@@ -253,6 +266,7 @@ public:
 		width( width ),
 		height( height )
 	{
+		GeometricObject<T>::vertices.resize( 4 );
 		SetVertices();
 	}
 	Rect( T x, T y, T width, T height )
@@ -261,6 +275,7 @@ public:
 		width( width ),
 		height( height )
 	{
+		GeometricObject<T>::vertices.resize( 4 );
 		SetVertices();
 	}
 	~Rect() {}
@@ -337,25 +352,18 @@ public:
 	{
 		return width;
 	}
+
 	void Draw( HDC hdc ) const override
 	{
-		const POINT topLeft = { (int)left, (int)top };
-		const POINT topRight = { (int)right, (int)top };
-		const POINT bottomRight = { (int)right, (int)bottom };
-		const POINT bottomLeft = { (int)left, (int)bottom };
-
-		const std::vector<POINT> vertices = { topLeft, topRight, bottomRight, bottomLeft };
-
-		Polygon( hdc, &vertices[0], vertices.size() );
+		std::vector<POINT> points;
+		for ( auto e : GeometricObject<T>::vertices )
+		{
+			points.push_back( {(LONG)e.x, (LONG)e.y} );
+		}
+		Polygon( hdc, &points[0], points.size() );
 	}
 
-	void DrawLine( HDC hdc, POINT startPos, POINT endPos )
-	{
-		MoveToEx( hdc, startPos.x, startPos.y, nullptr );
-		LineTo( hdc, endPos.x, endPos.y );
-	}
-
-	void DrawTransformed( HDC hdc, const Mat3<T> transform_in ) const override
+	void DrawTransformed( HDC hdc, const Mat3<T>& transform_in ) const override
 	{
 		const Vec2<T> topLeftVec = transform_in * (GeometricObject<T>::center - Vec2<T>{ (T)left, (T)top }) + GeometricObject<T>::center;
 		const Vec2<T> topRightVec = transform_in * (GeometricObject<T>::center - Vec2<T>{ (T)right, (T)top }) + GeometricObject<T>::center;
@@ -385,6 +393,16 @@ private:
 		right = GeometricObject<T>::center.x + halfWidth;
 		top = GeometricObject<T>::center.y - halfHeight;
 		bottom = GeometricObject<T>::center.y + halfHeight;
+
+		GeometricObject<T>::vertices[0] = GeometricObject<T>::transform * (GeometricObject<T>::center - Vec2<T>{ (T)left, (T)top }) + GeometricObject<T>::center;
+		GeometricObject<T>::vertices[1] = GeometricObject<T>::transform * (GeometricObject<T>::center - Vec2<T>{ (T)right, (T)top }) + GeometricObject<T>::center;
+		GeometricObject<T>::vertices[2] = GeometricObject<T>::transform * (GeometricObject<T>::center - Vec2<T> { (T)right, (T)bottom }) + GeometricObject<T>::center;
+		GeometricObject<T>::vertices[3] = GeometricObject<T>::transform * (GeometricObject<T>::center - Vec2<T>{ (T)left, (T)bottom }) + GeometricObject<T>::center;
+
+		//GeometricObject<T>::vertices[0] = { left, top };
+		//GeometricObject<T>::vertices[1] = { right, top };
+		//GeometricObject<T>::vertices[2] = { right, bottom };
+		//GeometricObject<T>::vertices[3] = { left, bottom };
 	}
 
 private:
@@ -408,7 +426,8 @@ public:
 		dTheta( MathSH::PI / nFlares ),
 		innerRadius( (T)((outerRadius* cos( dTheta * 2 )) / (cos( dTheta ))) )
 	{
-		MakeStar();
+		GeometricObject<T>::vertices.resize( nFlares * 2 );
+		SetVertices();
 	}
 	Star(const Vec2<T> center, T outerRadius, T innerRadius, int nFlares )
 		:
@@ -418,15 +437,29 @@ public:
 		innerRadius(innerRadius),
 		dTheta( MathSH::PI / nFlares )
 	{
-		MakeStar();
+		GeometricObject<T>::vertices.resize( nFlares * 2 );
+		SetVertices();
+	}
+
+	void SetCenter( const Vec2<T>& center_in ) override
+	{
+		GeometricObject<T>::center = center_in;
+		SetVertices();
+	}
+	void SetCenter( T x, T y ) override
+	{
+		SetCenter( { x, y } );
+		SetVertices();
 	}
 
 	void Draw( HDC hdc ) const override
 	{
-		const int size = nFlares * 2;
+		//const int size = nFlares * 2;
+		const int size = GeometricObject<T>::vertices.size();
 		std::vector<POINT> points;
 		points.reserve( size );
-		for ( auto e : starPoints )
+
+		for ( auto e : GeometricObject<T>::vertices )
 		{
 			const POINT p = { (int)e.x, (int)e.y };
 			points.push_back( p );
@@ -436,14 +469,24 @@ public:
 	}
 	
 private:
-	void MakeStar()
+	//void MakeStar()
+	//{
+	//	starPoints.reserve( nFlares * 2 );
+	//	for ( int i = 0; i < nFlares * 2; i++ )
+	//	{
+	//		const double rad = (i % 2 == 0) ? outerRadius : innerRadius;
+	//		starPoints.emplace_back( (T)(GeometricObject<T>::center.x + rad * cos( i * dTheta )),
+	//			(T)(GeometricObject<T>::center.y + rad * sin( i * dTheta )) );
+	//	}
+	//}
+
+	void SetVertices()
 	{
-		starPoints.reserve( nFlares * 2 );
-		for ( int i = 0; i < nFlares * 2; i++ )
+		for ( int i = 0; i < nFlares * 2; ++i )
 		{
 			const double rad = (i % 2 == 0) ? outerRadius : innerRadius;
-			starPoints.emplace_back( (T)(GeometricObject<T>::center.x + rad * cos( i * dTheta )),
-				(T)(GeometricObject<T>::center.y + rad * sin( i * dTheta )) );
+			const Vec2<T> tranformedVec = GeometricObject<T>::transform * Vec2<T>( (T)rad* cos( i* dTheta ), (T)rad* sin( i* dTheta ) );
+			GeometricObject<T>::vertices[i] = tranformedVec + GeometricObject<T>::center;
 		}
 	}
 
@@ -452,7 +495,7 @@ private:
 	const double dTheta;
 	T outerRadius;
 	T innerRadius;
-	std::vector<Vec2<T>> starPoints;
+	//std::vector<Vec2<T>> starPoints;
 };
 
 template<typename T>

@@ -20,6 +20,11 @@ public:
 	{
 		field.emplace_back( PhysicsEntity( PhysicsEntity::Type::Rect, pos ) );
 	}
+	void AddStar( const Vec2<int>& pos )
+	{
+		field.emplace_back( PhysicsEntity( PhysicsEntity::Type::Star, pos ) );
+	}
+
 
 	void Update(float dt, const RECT& w)
 	{

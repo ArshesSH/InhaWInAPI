@@ -139,7 +139,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     static RECT rcClient;
     static FrameTimer ft;
-    static float dt = 0;
+    static float dt = 0.0f;
     static PhysicsField field;
 
 
@@ -151,11 +151,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_TIMER:
     {
-        // Called when Timer On
         dt = ft.Mark();
         field.Update( dt, rcClient );
         InvalidateRect( hWnd, nullptr, true );
-
 
     }
     break;
@@ -184,8 +182,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         
         std::wstring testDT = std::to_wstring( dt );
         TextOut( hdc, 100, 100, testDT.c_str(), (int)testDT.size() );
+        
+        field.Draw( hdc );
 
-        field.Draw(hdc);
 
         EndPaint( hWnd, &ps );
         }
@@ -212,7 +211,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     {
-        field.AddCircle( {LOWORD(lParam), HIWORD( lParam ) } );
+        field.AddStar( {LOWORD(lParam), HIWORD( lParam ) } );
         InvalidateRect( hWnd, nullptr, true );
     }
     break;
