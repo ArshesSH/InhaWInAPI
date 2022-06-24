@@ -50,7 +50,7 @@ public:
 	{
 		time += dt;
 		collideTime += dt;
-		//MovePos( dt );
+		MovePos( dt );
 		DoWallCollision( walls );
 		SetAngle( 0.5 * MathSH::PI * time );
 
@@ -67,7 +67,7 @@ public:
 	void Draw(HDC hdc) const
 	{
 		//pObj->Draw( hdc );
-		pObj->DrawTransformed( hdc, Mat3<float>::Rotation( angle ) * Mat3<float>::Scale( scale ) );
+		pObj->DrawTransformed( hdc,  Mat3<float>::Rotation(angle) * Mat3<float>::Scale( scale ) );
 	}
 
 	void SetVelCollisionByTwoPointLine( const Vec2<float>& lhs, const Vec2<float>& rhs )
