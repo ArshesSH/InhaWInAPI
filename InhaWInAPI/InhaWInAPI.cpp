@@ -155,6 +155,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static RECT rcClient;
     static Circle<int> c1( { 30, 30 }, 20 );
     static Circle<int> c2( { 100,100 }, 30 );
+    static POINT startPos;
+    static POINT curPos;
+    static bool bDrag = false;
 
     switch (message)
     {
@@ -207,6 +210,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint( hWnd, &ps );
+
+        if ( bDrag )
+        {
+            DrawLine( hdc, startPos, curPos );
+        }
+
 
         //q7.P93Q7_CreateRect(hdc);
 
@@ -289,30 +298,46 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     {
-        const Vec2<int> mousePos{ LOWORD( lParam ), HIWORD( lParam ) };
-        if ( c1.IsContains( mousePos ) )
-        {
-            c1.SetSelected();
-            
-            InvalidateRect( hWnd, nullptr, true );
-        }
+        bDrag = true;
+        //const Vec2<int> mousePos{ LOWORD( lParam ), HIWORD( lParam ) };
+        //if ( c1.IsContains( mousePos ) )
+        //{
+        //    c1.SetSelected();
+        //    
+        //    InvalidateRect( hWnd, nullptr, true );
+        //}
     }
     break;
 
     case WM_LBUTTONUP:
     {
-        c1.SetSelected( false );
+        bDrag = false;  
         InvalidateRect( hWnd, nullptr, true );
+        //c1.SetSelected( false );
     }
     break;
 
     case WM_MOUSEMOVE:
     {
-        if ( c1.GetSelected() )
+        if ( bDrag )
         {
-            c1.SetCenter( { LOWORD( lParam ) ,HIWORD( lParam ) } );
-            InvalidateRect( hWnd, nullptr, true );
+            HDC hdc = GetDC( hWnd );
+            SetROP2( hdc, R2_XORPEN );
+            HPEN oldPen = (HPEN)SelectObject( hdc, (HPEN)GetStockObject( WHITE_PEN ) );
+            DrawLine( hdc, startPos, curPos );
+
+            curPos.x = LOWORD( lParam );
+            curPos.y = HIWORD( lParam );
+            DrawLine( hdc, startPos, curPos );
+
+            ReleaseDC( hWnd, hdc );
         }
+
+        //if ( c1.GetSelected() )
+        //{
+        //    c1.SetCenter( { LOWORD( lParam ) ,HIWORD( lParam ) } );
+        //    InvalidateRect( hWnd, nullptr, true );
+        //}
     }
     break;
 
