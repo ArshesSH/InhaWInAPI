@@ -71,7 +71,7 @@ public:
 	}
 
 	virtual void Draw( HDC hdc ) const = 0;
-	virtual void DrawTransformed( HDC hdc, const Mat3<float> transform_in ) const { return; }
+	virtual void DrawTransformed( HDC hdc, const Mat3<T> transform_in ) const { return; }
 	POINT Vec2ToPoint( const Vec2<T>& v ) const
 	{
 		return POINT( (int)v.x, (int)v.y );
@@ -196,7 +196,7 @@ public:
 
 		Ellipse( hdc, left, top, right, bottom );
 	}
-	void DrawTransformed( HDC hdc, const Mat3<float> transform_in ) const override
+	void DrawTransformed( HDC hdc, const Mat3<T> transform_in ) const override
 	{
 		Draw( hdc );
 	}
@@ -350,12 +350,12 @@ public:
 		Polygon( hdc, &vertices[0], vertices.size() );
 	}
 
-	void DrawTransformed( HDC hdc, const Mat3<float> transform_in ) const override
+	void DrawTransformed( HDC hdc, const Mat3<T> transform_in ) const override
 	{
-		Vec2<float> topLeftVec = { left, top };
-		Vec2<float> topRightVec = { right, top };
-		Vec2<float> bottomRightVec = { right, bottom };
-		Vec2<float> bottomLeftVec = { left, bottom };
+		Vec2<T> topLeftVec = transform_in * Vec2<T>{ (T)left, (T)top };
+		Vec2<T> topRightVec = transform_in * Vec2<T>{ (T)right, (T)top };
+		Vec2<T> bottomRightVec = transform_in * Vec2<T> { (T)right, (T)bottom };
+		Vec2<T> bottomLeftVec = transform_in * Vec2<T>{ (T)left, (T)bottom };
 
 
 		const POINT topLeft = { (int)topLeftVec.x, (int)topLeftVec.y };
@@ -363,8 +363,10 @@ public:
 		const POINT bottomRight = { (int)bottomRightVec.x, (int)bottomRightVec.y };
 		const POINT bottomLeft = { (int)bottomLeftVec.x, (int)bottomLeftVec.y };
 
+
+
 		const std::vector<POINT> vertices = { topLeft, topRight, bottomRight, bottomLeft };
-		Polygon( hdc, &vertices[0], vertices.size() );
+		
 	}
 	RECT GetRECT() const override
 	{

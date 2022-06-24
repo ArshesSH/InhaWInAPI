@@ -49,15 +49,17 @@ public:
 	void Update(float dt, const RECT& walls)
 	{
 		time += dt;
+		collideTime += dt;
 		MovePos( dt );
 		DoWallCollision( walls );
+		SetAngle( 0.5 * MathSH::PI * time );
 
 		if ( isCollide )
 		{
-			if ( time >= 0.03f )
+			if ( collideTime >= 0.03f )
 			{
 				isCollide = false;
-				time = 0.0f;
+				collideTime = 0.0f;
 			}
 		}
 	}
@@ -210,7 +212,8 @@ private:
 	float speed;
 	float scale = 1.0f;
 	float angle = 0.0f;
-	float time = 0;
+	float time = 0.0f;
+	float collideTime = 0.0f;
 	bool isCollide = false;
 };
 
