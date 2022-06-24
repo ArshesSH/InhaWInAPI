@@ -16,7 +16,19 @@ public:
 	};
 
 public:
-	PhysicsEntity( PhysicsEntity::Type type, const Vec2<int>& pos )
+	enum class State
+	{
+		Normal,
+		Collided,
+		NeedToSplit,
+		NeedToDestroy
+	};
+
+public:
+	PhysicsEntity( PhysicsEntity::Type type, const Vec2<int>& pos, int id )
+		:
+		id( id ),
+		objType( type )
 	{
 		std::random_device rd;
 		std::mt19937 rng( rd() );
@@ -56,11 +68,12 @@ public:
 		DoWallCollision( walls );
 		SetAngle( spinFreq * time );
 		pObj->ApplyTransformation( Mat3<float>::Rotation( angle ) );
-		if ( isCollide )
+
+		if ( objState == State::Collided )
 		{
 			if ( collideTime >= 0.03f )
 			{
-				isCollide = false;
+				objState = State::Normal;
 				collideTime = 0.0f;
 			}
 		}
@@ -68,8 +81,15 @@ public:
 
 	void Draw(HDC hdc) const
 	{
-		pObj->Draw( hdc );
 		//pObj->DrawTransformed( hdc, Mat3<float>::Rotation( angle ) * Mat3<float>::Scale( scale ) );
+		if ( objState == State::Normal )
+		{
+			pObj->Draw( hdc );
+		}
+		else if ( objState == State::Collided )
+		{
+			pObj->DrawDebug( hdc );
+		}
 	}
 
 	void SetVelCollisionByTwoPointLine( const Vec2<float>& lhs, const Vec2<float>& rhs )
@@ -97,26 +117,27 @@ public:
 	{
 		return pObj->GetCenter();
 	}
-
-	bool GetCollide() const
+	bool operator==( const PhysicsEntity& rhs ) const
 	{
-		return isCollide;
+		return id == rhs.id;
 	}
-	void SetCollide( bool state = true )
-	{
-		isCollide = state;
-	}
-
 	bool operator!=( const PhysicsEntity& rhs ) const
 	{
-		return pObj != rhs.pObj;
+		return id != rhs.id;
 	}
 	
+	bool WasCollided() const
+	{
+		return objState == State::Collided;
+	}
 	void SetCenter(const Vec2<float>& c)
 	{
 		pObj->SetCenter( c );
 	}
-
+	int GetID() const
+	{
+		return id;
+	}
 	float GetSize() const
 	{
 		return pObj->GetSize();
@@ -140,51 +161,40 @@ public:
 
 	void DoEntityCollisionWith( PhysicsEntity& other )
 	{
-		// For Circle
-		if ( IsCollideWith( other ) && *this != other && !GetCollide() && !other.GetCollide() )
+		if ( id != other.id )
 		{
-			// Get this and target's distance Vector and normal Vec
-			const Vec2<float> distVec = other.GetCenter() - GetCenter();
-			const Vec2<float> normalVec = distVec.GetNormalRightVec2().GetNormalized();
+			if ( objType == Type::Circle )
+			{
+				if ( IsCollideWith( other ) && !WasCollided() && !other.WasCollided() )
+				{
+					const Vec2<float> distVec = GetCenter() - other.GetCenter();
+					const float distance = distVec.GetLength();
+					const float ovelapDist = (distance - GetSize() - other.GetSize()) * 0.5f;
 
-			// Calc half Distance and Move Center of this and target
-			const float thisSize = GetSize();
-			const float otherSize = other.GetSize();
-			const float halfDistance = (thisSize + otherSize - distVec.GetLength()) / 2;
+					// Calc Velocity from dist-normal Vec
+					const Vec2<float> normalVec = distVec.GetNormalLeftVec2().GetNormalized();
+					other.SetVelCollisionBy( normalVec );
+					SetVelCollisionBy( normalVec );
 
-			SetCenter( GetCenter() - distVec.GetNormalized() * halfDistance );
-			other.SetCenter( other.GetCenter() + distVec.GetNormalized() * halfDistance );
+					// Displace this and other
+					const Vec2<float> distOverlapVec = distVec.GetNormalized() * ovelapDist;
+					SetCenter( GetCenter() - distOverlapVec );
+					other.SetCenter( other.GetCenter() + distOverlapVec );
 
-			// Calc Velocity from dist-normal Vec
-			other.SetVelCollisionBy( normalVec );
-			SetVelCollisionBy( normalVec );
-
-			// Set Collide to true for avoid ovelap (Update to false at Entity Update)
-			SetCollide();
-			other.SetCollide();
-		}
-
-		if ( IsCollideWith_SAT( other ) && *this != other )
-		{
-			// Get this and target's distance Vector and normal Vec
-			const Vec2<float> distVec = other.GetCenter() - GetCenter();
-			const Vec2<float> normalVec = distVec.GetNormalRightVec2().GetNormalized();
-
-			// Calc half Distance and Move Center of this and target
-			const float thisSize = GetSize();
-			const float otherSize = other.GetSize();
-			const float halfDistance = (thisSize + otherSize - distVec.GetLength()) / 2;
-
-			SetCenter( GetCenter() - distVec.GetNormalized() * halfDistance );
-			other.SetCenter( other.GetCenter() + distVec.GetNormalized() * halfDistance );
-
-			// Calc Velocity from dist-normal Vec
-			other.SetVelCollisionBy( normalVec );
-			SetVelCollisionBy( normalVec );
+					objState = State::Collided;
+					other.objState = State::Collided;
+				}
+			}
+			else if ( objType == Type::Rect )
+			{
+				if ( IsCollideWith_SAT( other ) )
+				{
+					objState = State::Collided;
+					other.objState = State::Collided;
+				}
+			}
 		}
 	}
-
-
 
 private:
 	void MovePos( float dt )
@@ -233,6 +243,7 @@ private:
 
 private:
 	std::unique_ptr<GeometricObject<float>> pObj;
+
 	Vec2<float> vel;
 	Mat3<float> transform = Mat3<float>::Identity();
 	float speed;
@@ -241,6 +252,8 @@ private:
 	float spinFreq = 0.0f;
 	float time = 0.0f;
 	float collideTime = 0.0f;
-	bool isCollide = false;
+	int id;
+	Type objType;
+	State objState = State::Normal;
 };
 

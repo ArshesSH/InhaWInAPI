@@ -6,8 +6,6 @@
 #include "framework.h"
 #include <vector>
 
-
-
 template<typename T>
 class GeometricObject
 {
@@ -78,10 +76,10 @@ public:
 
 	virtual void Draw( HDC hdc ) const = 0;
 	virtual void DrawTransformed( HDC hdc, const Mat3<T>& transform_in ) const { return; }
+	virtual void DrawDebug(HDC hdc) const {return;}
 	POINT Vec2ToPoint( const Vec2<T>& v ) const
 	{
 		return POINT( (int)v.x, (int)v.y );
-
 	}
 	Vec2<T> PointToVec2( const POINT& p ) const
 	{
@@ -107,56 +105,64 @@ public:
 		transform =  transform_in;
 	}
 
-	bool GeometricOverlap_SAT(  GeometricObject<T>& other )
+
+	bool CheckVerticesSAT( const GeometricObject<T>& shape1, const GeometricObject<T>& shape2 ) const
 	{
-		GeometricObject<T>* shape1 = this;
-		GeometricObject<T>* shape2 = &other;
-
-		for ( int shape = 0; shape < 2; ++shape )
+		for ( int vIdx = 0; vIdx < shape1.vertices.size(); ++vIdx )
 		{
-			if ( shape == 1 )
+			const int vIdxNext = (vIdx + 1) % shape1.vertices.size();
+			Vec2<T> axisProj = (shape1.vertices[vIdx] - shape1.vertices[vIdxNext]).GetNormalLeftVec2();
+
+			float minThis = INFINITY;
+			float maxThis = -INFINITY;
+			for ( auto e : shape1.vertices )
 			{
-				shape1 = &other;
-				shape2 = this;
+				const float p = e * axisProj;
+				minThis = (std::min)(minThis, p);
+				maxThis = (std::max)(maxThis, p);
 			}
-			for ( int vIdx = 0; vIdx < shape1->vertices.size(); ++vIdx )
+
+			float minOther = INFINITY;
+			float maxOther = -INFINITY;
+			for ( auto e : shape2.vertices )
 			{
-				const int vIdxNext = (vIdx + 1) % shape1->vertices.size();
-				Vec2<T> axisProj = (shape1->vertices[vIdx] - shape1->vertices[vIdxNext]).GetNormalLeftVec2();
-
-				float minThis = INFINITY;
-				float maxThis = -INFINITY;
-				for ( auto e : shape1->vertices )
-				{
-					const float p = e * axisProj;
-					minThis = (std::min)(minThis, p);
-					maxThis = (std::max)(maxThis, p);
-				}
-
-				float minOther = INFINITY;
-				float maxOther = -INFINITY;
-				for ( auto e : shape2->vertices )
-				{
-					const float p = e * axisProj;
-					minOther = (std::min)(minOther, p);
-					maxOther = (std::max)(maxOther, p);
-				}
-
-				if ( !(maxOther >= minThis && maxThis >= minOther) )
-				{
-					return false;
-				}
+				const float p = e * axisProj;
+				minOther = (std::min)(minOther, p);
+				maxOther = (std::max)(maxOther, p);
 			}
-			return true;
+
+			if ( !(maxOther >= minThis && maxThis >= minOther) )
+			{
+				return false;
+			}
 		}
+		return true;
+	}
+
+	bool GeometricOverlap_SAT( const GeometricObject<T>& other ) const
+	{
+		if ( CheckVerticesSAT( *this, other ) == false )
+		{
+			return false;
+		}
+		if ( CheckVerticesSAT( other, *this ) == false )
+		{
+			return false;
+		}
+		return true;
 	}
 
 protected:
 	Vec2<T> center;
 	std::vector<Vec2<T>> vertices;
 	Mat3<T> transform = Mat3<T>::Identity();
+	COLORREF color = 0xFFFFFF;
 	bool isSelected = false;
 };
+
+
+template<typename T>
+class Rect;
 
 template<typename T>
 class Circle : public GeometricObject<T>
@@ -181,7 +187,11 @@ public:
 		{
 			const Vec2<T> distance = GeometricObject<T>::center - pCircle->center;
 			const T sumOfRadius = radius + pCircle->radius;
-			return distance.GetLength() < sumOfRadius;
+			return (T)abs( distance.x * distance.x + distance.y * distance.y ) < sumOfRadius * sumOfRadius;
+		}
+		else if ( const Rect<T>* pRect = dynamic_cast<const Rect<T>*>(&other) )
+		{
+			return this->GeometricOverlap_SAT( other );
 		}
 		return false;
 	}
@@ -189,7 +199,7 @@ public:
 	{
 		const Vec2<T> distance = GeometricObject<T>::center - other->center;
 		const T sumOfRadius = radius + other->radius;
-		return distance.GetLength() < sumOfRadius;
+		return (T)abs( distance.x * distance.x + distance.y * distance.y ) < sumOfRadius * sumOfRadius;
 	}
 	bool IsContainedBy( const GeometricObject<T>& other ) const override
 	{
@@ -262,6 +272,10 @@ public:
 	{
 		Draw( hdc );
 	}
+	void DrawDebug( HDC hdc ) const override
+	{
+		DrawColor( hdc, RGB( 255,0,0 ) );
+	}
 
 	void DrawColor( HDC hdc, COLORREF color = 0xFFFFFF ) const
 	{
@@ -271,9 +285,11 @@ public:
 		const int bottom = (int)(GeometricObject<T>::center.y + radius);
 
 		HBRUSH hBrush;
+		HBRUSH oldBrush;
 		hBrush = CreateSolidBrush( color );
-		SelectObject( hdc, hBrush );
+		oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
 		Ellipse( hdc, left, top, right, bottom );
+		SelectObject( hdc, oldBrush );
 		DeleteObject( hBrush );
 	}
 	void DrawSelected( HDC hdc, COLORREF color = 0x0000FF) const
@@ -430,6 +446,23 @@ public:
 
 		Polygon( hdc, &vertices[0], vertices.size() );
 	}
+	void DrawDebug( HDC hdc ) const override
+	{
+		std::vector<POINT> points;
+		for ( auto e : GeometricObject<T>::vertices )
+		{
+			points.push_back( { (LONG)e.x, (LONG)e.y } );
+		}
+
+		HBRUSH hBrush;
+		HBRUSH oldBrush;
+		hBrush = CreateSolidBrush( 0x0000FF );
+		oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
+		Polygon( hdc, &points[0], points.size() );
+		SelectObject( hdc, oldBrush );
+		DeleteObject( hBrush );
+
+	}
 	RECT GetRECT() const override
 	{
 		return { (int)left, (int)top, (int)right, (int)bottom };
@@ -449,11 +482,6 @@ private:
 		GeometricObject<T>::vertices[1] = GeometricObject<T>::transform * (GeometricObject<T>::center - Vec2<T>{ (T)right, (T)top }) + GeometricObject<T>::center;
 		GeometricObject<T>::vertices[2] = GeometricObject<T>::transform * (GeometricObject<T>::center - Vec2<T> { (T)right, (T)bottom }) + GeometricObject<T>::center;
 		GeometricObject<T>::vertices[3] = GeometricObject<T>::transform * (GeometricObject<T>::center - Vec2<T>{ (T)left, (T)bottom }) + GeometricObject<T>::center;
-
-		//GeometricObject<T>::vertices[0] = { left, top };
-		//GeometricObject<T>::vertices[1] = { right, top };
-		//GeometricObject<T>::vertices[2] = { right, bottom };
-		//GeometricObject<T>::vertices[3] = { left, bottom };
 	}
 
 private:
@@ -505,7 +533,6 @@ public:
 
 	void Draw( HDC hdc ) const override
 	{
-		//const int size = nFlares * 2;
 		const int size = GeometricObject<T>::vertices.size();
 		std::vector<POINT> points;
 		points.reserve( size );
@@ -518,19 +545,30 @@ public:
 
 		Polygon( hdc, &points[0], size );
 	}
+
+	void DrawDebug( HDC hdc ) const override
+	{
+		const int size = GeometricObject<T>::vertices.size();
+		std::vector<POINT> points;
+		points.reserve( size );
+
+		for ( auto e : GeometricObject<T>::vertices )
+		{
+			const POINT p = { (int)e.x, (int)e.y };
+			points.push_back( p );
+		}
+
+		HBRUSH hBrush;
+		HBRUSH oldBrush;
+		hBrush = CreateSolidBrush( 0x0000FF );
+		SelectObject( hdc, hBrush );
+		oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
+		Polygon( hdc, &points[0], size );
+		SelectObject( hdc, oldBrush );
+		DeleteObject( hBrush );
+	}
 	
 private:
-	//void MakeStar()
-	//{
-	//	starPoints.reserve( nFlares * 2 );
-	//	for ( int i = 0; i < nFlares * 2; i++ )
-	//	{
-	//		const double rad = (i % 2 == 0) ? outerRadius : innerRadius;
-	//		starPoints.emplace_back( (T)(GeometricObject<T>::center.x + rad * cos( i * dTheta )),
-	//			(T)(GeometricObject<T>::center.y + rad * sin( i * dTheta )) );
-	//	}
-	//}
-
 	void SetVertices()
 	{
 		for ( int i = 0; i < nFlares * 2; ++i )
@@ -546,7 +584,6 @@ private:
 	const double dTheta;
 	T outerRadius;
 	T innerRadius;
-	//std::vector<Vec2<T>> starPoints;
 };
 
 template<typename T>

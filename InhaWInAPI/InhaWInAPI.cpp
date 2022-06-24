@@ -211,7 +211,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     {
-        field.AddStar( {LOWORD(lParam), HIWORD( lParam ) } );
+        field.AddCircle( {LOWORD(lParam), HIWORD( lParam ) } );
         InvalidateRect( hWnd, nullptr, true );
     }
     break;
