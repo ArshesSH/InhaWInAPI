@@ -30,9 +30,6 @@
     <ClInclude Include="Question.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Circle2D.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MathSH.h">
       <Filter>Header Files</Filter>
     </ClInclude>
