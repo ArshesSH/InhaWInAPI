@@ -7,6 +7,11 @@
 #include <vector>
 
 template<typename T>
+class Rect;
+template<typename T>
+class Circle;
+
+template<typename T>
 class GeometricObject
 {
 public:
@@ -33,10 +38,14 @@ public:
 	virtual bool IsContains( const GeometricObject<T>& ) const { return false; }
 	virtual bool IsContains( const Vec2<T>& ) const { return false; }
 	virtual bool IsContains( T, T ) const { return false; }
-	virtual double GetArea() const { return 0; };
+	virtual double GetArea() const { return 0; }
 	virtual double GetPerimeter() const { return 0; }
-	virtual RECT GetRECT() const { return { 0,0,0,0 }; };
+	virtual T GetRadius() const { return 0; }
+	virtual RECT GetRECT() const { return { 0,0,0,0 }; }
 	virtual T GetSize() const { return (T)0; };
+	virtual void Draw( HDC hdc ) const = 0;
+	virtual void DrawTransformed( HDC hdc, const Mat3<T>& transform_in ) const { return; }
+	virtual void DrawDebug( HDC hdc ) const { return; }
 	double GetDistanceWith( const GeometricObject<T>& other ) const
 	{
 		const Vec2<T> vDist = other.center - center;
@@ -70,10 +79,10 @@ public:
 	{
 		center.y = y;
 	}
-
-	virtual void Draw( HDC hdc ) const = 0;
-	virtual void DrawTransformed( HDC hdc, const Mat3<T>& transform_in ) const { return; }
-	virtual void DrawDebug(HDC hdc) const {return;}
+	std::vector<Vec2<T>> GetVertices() const
+	{
+		return vertices;
+	}
 	POINT Vec2ToPoint( const Vec2<T>& v ) const
 	{
 		return POINT( (int)v.x, (int)v.y );
@@ -135,20 +144,34 @@ public:
 		return true;
 	}
 
-	bool GeometricOverlap_SAT( const GeometricObject<T>& other ) const
+	bool CheckCircleOverlap(const Circle<T>& c1, const Circle<T>& c2) const
 	{
-		if ( CheckVerticesSAT( *this, other ) == false )
-		{
-			return false;
-		}
-		if ( CheckVerticesSAT( other, *this ) == false )
-		{
-			return false;
-		}
-		return true;
+		const Vec2<T> distance = c1.center - c2.center;
+		const T sumOfRadius = c1.GetRadius() + c2.GetRadius();
+		return (T)abs( distance.x * distance.x + distance.y * distance.y ) < sumOfRadius * sumOfRadius;
 	}
 
-	bool CheckCircleOverlapWithConvex_SAT( const GeometricObject<T>& convex, const GeometricObject<T>& circle ) const
+	bool CheckConvexOverlapWithConvex( const GeometricObject<T>& other ) const
+	{
+		Circle<T> thisOuterCircle( center, GetRadius() );
+		Circle<T> otherOuterCircle( other.center, other.GetRadius() );
+
+		if ( CheckCircleOverlap( thisOuterCircle, otherOuterCircle ) )
+		{
+			if ( CheckVerticesSAT( *this, other ) == false )
+			{
+				return false;
+			}
+			if ( CheckVerticesSAT( other, *this ) == false )
+			{
+				return false;
+			}
+			return true;
+		}
+		return false;
+	}
+
+	bool CheckConvexOverlapWithCircle( const GeometricObject<T>& convex, const GeometricObject<T>& circle ) const
 	{
 		for ( int vIdx = 0; vIdx < convex.vertices.size(); ++vIdx )
 		{
@@ -175,7 +198,6 @@ public:
 			minOther = (std::min)(minOther, p);
 			maxOther = (std::max)(maxOther, p);
 
-
 			if ( !(maxOther >= minThis && maxThis >= minOther) )
 			{
 				return false;
@@ -192,10 +214,6 @@ protected:
 	COLORREF color = 0xFFFFFF;
 	bool isSelected = false;
 };
-
-
-template<typename T>
-class Rect;
 
 template<typename T>
 class Circle : public GeometricObject<T>
@@ -224,20 +242,18 @@ public:
 	{
 		if ( const Circle<T>* pCircle = dynamic_cast<const Circle<T>*>(&other) )
 		{
-			const Vec2<T> distance = GeometricObject<T>::center - pCircle->center;
-			const T sumOfRadius = radius + pCircle->radius;
-			return (T)abs( distance.x * distance.x + distance.y * distance.y ) < sumOfRadius * sumOfRadius;
+			return this->IsOverlapWith( *pCircle );
 		}
 		else if ( const Rect<T>* pRect = dynamic_cast<const Rect<T>*>(&other) )
 		{
-			return this->CheckCircleOverlapWithConvex_SAT( other, *this );
+			return this->CheckConvexOverlapWithCircle( other, *this );
 		}
 		return false;
 	}
 	bool IsOverlapWith( const Circle<T>& other ) const
 	{
-		const Vec2<T> distance = GeometricObject<T>::center - other->center;
-		const T sumOfRadius = radius + other->radius;
+		const Vec2<T> distance = GeometricObject<T>::center - other.center;
+		const T sumOfRadius = radius + other.radius;
 		return (T)abs( distance.x * distance.x + distance.y * distance.y ) < sumOfRadius * sumOfRadius;
 	}
 	bool IsContainedBy( const GeometricObject<T>& other ) const override
@@ -291,7 +307,7 @@ public:
 	{
 		radius = r;
 	}
-	T GetRadius() const
+	T GetRadius() const override
 	{
 		return radius;
 	}
@@ -370,6 +386,8 @@ public:
 		width( (T)1 ),
 		height( (T)1 )
 	{
+		const T halfWidth = (T)0.5 * width;
+		outerRadius = (T)std::sqrt( halfWidth * halfWidth + halfWidth * halfWidth );
 		GeometricObject<T>::vertices.resize( 4 );
 		SetVertices();
 	}
@@ -379,6 +397,8 @@ public:
 		width( width ),
 		height( height )
 	{
+		const T halfWidth = (T)0.5 * width;
+		outerRadius = (T)std::sqrt( halfWidth * halfWidth + halfWidth * halfWidth );
 		GeometricObject<T>::vertices.resize( 4 );
 		SetVertices();
 	}
@@ -388,6 +408,8 @@ public:
 		width( width ),
 		height( height )
 	{
+		const T halfWidth = (T)0.5 * width;
+		outerRadius = (T)std::sqrt( halfWidth * halfWidth + halfWidth * halfWidth );
 		GeometricObject<T>::vertices.resize( 4 );
 		SetVertices();
 	}
@@ -396,12 +418,11 @@ public:
 	{
 		if ( const Rect<T>* pRect = dynamic_cast<const Rect<T>*>(&other) )
 		{
-			//return right > pRect->left && left < pRect->right&& top > pRect->bottom && bottom < pRect->top;
-			return this->GeometricOverlap_SAT( other );
+			return this->CheckConvexOverlapWithConvex( other );
 		}
 		else if ( const Circle<T>* pCircle = dynamic_cast<const Circle<T>*>(&other) )
 		{
-			return this->CheckCircleOverlapWithConvex_SAT( *this, other );
+			return this->CheckConvexOverlapWithCircle( *this, other );
 		}
 		return false;
 	}
@@ -436,6 +457,10 @@ public:
 	double GetPerimeter() const override
 	{
 		return width * 2 + height * 2;
+	}
+	T GetRadius() const override
+	{
+		return outerRadius;
 	}
 	T GetWidth() const
 	{
@@ -541,6 +566,7 @@ private:
 	T right;
 	T top;
 	T bottom;
+	T outerRadius;
 };
 
 template<typename T>
@@ -617,6 +643,15 @@ public:
 		SelectObject( hdc, oldBrush );
 		DeleteObject( hBrush );
 	}
+
+	RECT GetRECT() const override
+	{
+		const int left = (int)(GeometricObject<T>::center.x - outerRadius);
+		const int top = (int)(GeometricObject<T>::center.y - outerRadius);
+		const int right = (int)(GeometricObject<T>::center.x + outerRadius);
+		const int bottom = (int)(GeometricObject<T>::center.y + outerRadius);
+		return { left, top, right, bottom };
+	}
 	
 private:
 	void SetVertices()
@@ -634,71 +669,4 @@ private:
 	const double dTheta;
 	T outerRadius;
 	T innerRadius;
-};
-
-template<typename T>
-class Point : public GeometricObject<T>
-{
-public:
-	Point() {}
-	Point( T x, T y )
-		:
-		GeometricObject<T>( x, y )
-	{}
-	~Point() {}
-
-	Point<T> operator+( const Point<T>& rhs ) const
-	{
-		return { GeometricObject<T>::x + rhs.x , GeometricObject<T>::y + rhs.y };
-	}
-	Point<T>& operator+=( const Point<T>& rhs ) const
-	{
-		return *this = *this + rhs;
-	}
-	Point<T> operator-( const Point<T>& rhs ) const
-	{
-		return { GeometricObject<T>::x - rhs.x , GeometricObject<T>::y - rhs.y };
-	}
-	Point<T>& operator-=( const Point<T>& rhs ) const
-	{
-		return *this = *this - rhs;
-	}
-	T GetLength() const
-	{
-		return std::sqrt( GetLengthSq() );
-	}
-	T GetLengthSq() const
-	{
-		return GeometricObject<T>::x * GeometricObject<T>::x + GeometricObject<T>::y * GeometricObject<T>::y;
-	}
-
-	void Draw( HDC hdc ) const override
-	{
-		SetPixel( hdc, GeometricObject<T>::center.x, GeometricObject<T>::center.y, RGB( 0, 0, 0 ) );
-	}
-
-	static bool IsContains( const GeometricObject<T>& other, const GeometricObject<T>& p )
-	{
-		if ( const Point<T>* pPoint = dynamic_cast<const Point<T>*>(&p) )
-		{
-			if ( const Rect<T>* pRect = dynamic_cast<const Rect<T>*>(&other) )
-			{
-				return pRect->IsContains( pPoint->GetCenterX(), pPoint->GetCenterY() );
-			}
-			else if ( const Circle<T>* pCircle = dynamic_cast<const Circle<T>*>(&other) )
-			{
-				return pCircle->IsContains( pPoint->GetCenterX(), pPoint->GetCenterY() );
-			}
-			else
-			{
-				OutputDebugStringW( L"Point::IsContains( const GeometricObject<T>& other, const GeometricObject<T>& p ), other's type mismatch" );
-				exit( 1 );
-			}
-		}
-		else
-		{
-			OutputDebugStringW( L"Point::IsContains( const GeometricObject<T>& other, const GeometricObject<T>& p ), p's type mismatch" );
-			exit( 1 );
-		}
-	}
 };

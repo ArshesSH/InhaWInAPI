@@ -30,14 +30,25 @@ public:
 
 	void Update(float dt, const RECT& w)
 	{
+		//for ( auto itEntity = field.begin(); itEntity != field.end(); ++itEntity )
+		//{
+		//	itEntity->Update( dt, w );
+
+		//	for ( auto itOther = itEntity ; itOther != field.end(); ++itOther )
+		//	{
+		//		itEntity->DoEntityCollisionWith( *itOther );
+		//	}
+		//}
 		for ( auto& e : field )
 		{
 			e.Update( dt, w );
+
 			for ( auto& other : field )
 			{
 				e.DoEntityCollisionWith( other );
 			}
 		}
+
 	}
 	void Draw(HDC hdc) const
 	{
