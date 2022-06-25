@@ -170,34 +170,54 @@ public:
 		return false;
 	}
 
-	bool CheckConvexOverlapWithLine( const Vec2<T>& line ) const
+	bool CheckConvexOverlapWithborder( const Vec2<T>& topLeft, const Vec2<T>& bottomRight )
 	{
-		for ( int vIdx = 0; vIdx < vertices.size(); ++vIdx )
-		{
-			const int vIdxNext = (vIdx + 1) % vertices.size();
-			Vec2<T> axisProj = (vertices[vIdx] - vertices[vIdxNext]).GetNormalLeftVec2();
+		const Vec2<T> NormalizedHorizontal = Vec2<T>( bottomRight.x - topLeft.x, topLeft.y ).GetNormalized();
+		const Vec2<T> NormalizedVertical = Vec2<T>( topLeft.x, bottomRight.y - topLeft.y ).GetNormalized();
 
-			float minThis = INFINITY;
-			float maxThis = -INFINITY;
-			for ( auto e : vertices )
+		float minHorizon = INFINITY;
+		float maxHorizon = -INFINITY;
+		float minVertical = INFINITY;
+		float maxVertical = -INFINITY;
+
+		// Check Horizontal
+		for ( auto e : vertices )
+		{
+			const float pHorizon = e * NormalizedHorizontal;
+			minHorizon = (std::min)(minHorizon, pHorizon);
+			maxHorizon = (std::max)(maxHorizon, pHorizon);
+
+			if ( minHorizon < topLeft.x )
 			{
-				const float p = e * axisProj;
-				minThis = (std::min)(minThis, p);
-				maxThis = (std::max)(maxThis, p);
+				const Vec2<T> minimumTranslateVec = NormalizedHorizontal* (topLeft.x - e.x);
+				SetCenter( GetCenter() + minimumTranslateVec );
+				return true;
+			}
+			else if ( bottomRight.x < maxHorizon )
+			{
+				const Vec2<T> minimumTranslateVec = NormalizedHorizontal* (bottomRight.x - e.x);
+				SetCenter( GetCenter() + minimumTranslateVec );
+				return true;
 			}
 
-			float minOther = INFINITY;
-			float maxOther = -INFINITY;
-			const float p = line * axisProj;
-			minOther = (std::min)(minOther, p);
-			maxOther = (std::max)(maxOther, p);
+			const float pVertical = e * NormalizedVertical;
+			minVertical = (std::min)(minVertical, pVertical);
+			maxVertical = (std::max)(maxVertical, pVertical);
 
-			if ( !(maxOther >= minThis && maxThis >= minOther) )
+			if ( minVertical < topLeft.y )
 			{
-				return false;
+				const Vec2<T> minimumTranslateVec = NormalizedVertical * (topLeft.y - e.y);
+				SetCenter( GetCenter() + minimumTranslateVec );
+				return true;
+			}
+			else if ( bottomRight.y < maxVertical )
+			{
+				const Vec2<T> minimumTranslateVec = NormalizedVertical * (bottomRight.y - e.y);
+				SetCenter( GetCenter() + minimumTranslateVec );
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 
 	bool CheckConvexOverlapWithCircle( const GeometricObject<T>& convex, const GeometricObject<T>& circle ) const

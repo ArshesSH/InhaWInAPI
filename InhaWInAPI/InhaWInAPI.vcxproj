@@ -147,7 +147,6 @@
     <ClInclude Include="MathSH.h" />
     <ClInclude Include="PhysicsEntity.h" />
     <ClInclude Include="PhysicsField.h" />
-    <ClInclude Include="Question.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Vec2.h" />
@@ -159,7 +158,6 @@
     <ClCompile Include="InhaWInAPI.cpp" />
     <ClCompile Include="PhysicsEntity.cpp" />
     <ClCompile Include="PhysicsField.cpp" />
-    <ClCompile Include="Question.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="InhaWInAPI.rc" />

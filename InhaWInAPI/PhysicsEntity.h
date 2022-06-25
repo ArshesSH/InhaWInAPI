@@ -216,33 +216,12 @@ private:
 		if ( objType == Type::Rect )
 		{
 			const Vec2<float> topLeftVec{ (float)walls.left, (float)walls.top };
-			const Vec2<float> topRightVec{ (float)walls.right, (float)walls.top };
 			const Vec2<float> bottomRightVec { (float)walls.right, (float)walls.bottom };
-			const Vec2<float> bottomLeftVec { (float)walls.left, (float)walls.bottom };
 
-			const Vec2<float> wallLeftVec = bottomLeftVec - topLeftVec;
-			const Vec2<float> wallRightVec = bottomRightVec - topRightVec;
-			const Vec2<float> wallTopVec = topRightVec - topLeftVec;
-			const Vec2<float> wallBottomVec = bottomRightVec - bottomLeftVec;
-
-			if ( pObj->CheckConvexOverlapWithLine( wallLeftVec ) )
+			if (CheckConvexOverlapWithborder( topLeftVec, bottomRightVec ) )
 			{
-				ReboundX();
+				objState = State::Collided;
 			}
-			else if ( pObj->CheckConvexOverlapWithLine( wallRightVec ) )
-			{
-				ReboundX();
-			}
-
-			if ( pObj->CheckConvexOverlapWithLine( wallTopVec ) )
-			{
-				ReboundY();
-			}
-			else if ( pObj->CheckConvexOverlapWithLine( wallBottomVec ) )
-			{
-				ReboundY();
-			}
-			
 		}
 		else
 		{
@@ -336,6 +315,61 @@ private:
 				return false;
 			}
 			return true;
+		}
+		return false;
+	}
+
+	bool CheckConvexOverlapWithborder( const Vec2<float>& topLeft, const Vec2<float>& bottomRight )
+	{
+		const Vec2<float> NormalizedHorizontal = Vec2<float>( bottomRight.x - topLeft.x, topLeft.y ).GetNormalized();
+		const Vec2<float> NormalizedVertical = Vec2<float>( topLeft.x, bottomRight.y - topLeft.y ).GetNormalized();
+
+		float minHorizon = INFINITY;
+		float maxHorizon = -INFINITY;
+		float minVertical = INFINITY;
+		float maxVertical = -INFINITY;
+
+		// Check Horizontal
+		std::vector<Vec2<float>> vertices = pObj->GetVertices();
+		for ( auto e : vertices )
+		{
+			const float pHorizon = e * NormalizedHorizontal;
+			minHorizon = (std::min)(minHorizon, pHorizon);
+			maxHorizon = (std::max)(maxHorizon, pHorizon);
+
+			if ( minHorizon < topLeft.x )
+			{
+				const Vec2<float> minimumTranslateVec = NormalizedHorizontal * (topLeft.x - e.x);
+				SetCenter( GetCenter() + minimumTranslateVec );
+				ReboundX();
+				return true;
+			}
+			else if ( bottomRight.x < maxHorizon )
+			{
+				const Vec2<float> minimumTranslateVec = NormalizedHorizontal * (bottomRight.x - e.x);
+				SetCenter( GetCenter() + minimumTranslateVec );
+				ReboundX();
+				return true;
+			}
+
+			const float pVertical = e * NormalizedVertical;
+			minVertical = (std::min)(minVertical, pVertical);
+			maxVertical = (std::max)(maxVertical, pVertical);
+
+			if ( minVertical < topLeft.y )
+			{
+				const Vec2<float> minimumTranslateVec = NormalizedVertical * (topLeft.y - e.y);
+				SetCenter( GetCenter() + minimumTranslateVec );
+				ReboundY();
+				return true;
+			}
+			else if ( bottomRight.y < maxVertical )
+			{
+				const Vec2<float> minimumTranslateVec = NormalizedVertical * (bottomRight.y - e.y);
+				SetCenter( GetCenter() + minimumTranslateVec );
+				ReboundY();
+				return true;
+			}
 		}
 		return false;
 	}
