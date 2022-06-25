@@ -14,19 +14,16 @@ public:
 		:
 		center( (T)0, (T)0 )
 	{
-		vertices.push_back( center );
 	}
 	GeometricObject( const Vec2<T> center )
 		:
 		center( center )
 	{
-		vertices.push_back( center );
 	}
 	GeometricObject( T x, T y )
 		:
 		center( x, y )
 	{
-		vertices.push_back( center );
 	}
 	virtual ~GeometricObject() {}
 
@@ -168,18 +165,24 @@ template<typename T>
 class Circle : public GeometricObject<T>
 {
 public:
-	Circle() {}
+	Circle()
+	{
+		GeometricObject<T>::vertices.push_back( GeometricObject<T>::center );
+	}
 	Circle(const Vec2<T>& center, T radius )
 		:
 		GeometricObject<T>(center),
 		radius(radius)
 	{
+		GeometricObject<T>::vertices.push_back( GeometricObject<T>::center );
 	}
 	Circle(T x, T y, T radius)
 		:
 		GeometricObject<T>( x, y ),
 		radius(radius)
-	{}
+	{
+		GeometricObject<T>::vertices.push_back( GeometricObject<T>::center );
+	}
 	~Circle() {}
 	bool IsOverlapWith( const GeometricObject<T>& other ) const override
 	{
@@ -238,6 +241,16 @@ public:
 	{
 		return radius * MathSH::PI * 2;
 	}
+	void SetCenter( const Vec2<T>& p ) override
+	{
+		GeometricObject<T>::center = p;
+		GeometricObject<T>::vertices[0] = GeometricObject<T>::center;
+	}
+	void SetCenter( T x, T y ) override
+	{
+		GeometricObject<T>::center = { x, y };
+		GeometricObject<T>::vertices[0] = GeometricObject<T>::center;
+	}
 	void SetRadius( T r )
 	{
 		radius = r;
@@ -258,7 +271,6 @@ public:
 		const int bottom = (int)(GeometricObject<T>::center.y + radius);
 		return { left, top, right, bottom };
 	}
-
 	void Draw(HDC hdc) const override
 	{
 		const int left = (int)(GeometricObject<T>::center.x - radius);
@@ -276,7 +288,6 @@ public:
 	{
 		DrawColor( hdc, RGB( 255,0,0 ) );
 	}
-
 	void DrawColor( HDC hdc, COLORREF color = 0xFFFFFF ) const
 	{
 		const int left = (int)(GeometricObject<T>::center.x - radius);
@@ -309,7 +320,6 @@ public:
 			Draw( hdc );
 		}
 	}
-	
 private:
 	T radius;
 };
@@ -346,13 +356,16 @@ public:
 		SetVertices();
 	}
 	~Rect() {}
-
 	bool IsOverlapWith( const GeometricObject<T>& other ) const override
 	{
 		if ( const Rect<T>* pRect = dynamic_cast<const Rect<T>*>(&other) )
 		{
 			return right > pRect->left && left < pRect->right&& top > pRect->bottom && bottom < pRect->top;
-		}
+		}/*
+		else if ( const Circle<T>* pCircle = dynamic_cast<const Circle<T>*>(&other) )
+		{
+			return this->GeometricOverlap_SAT( other );
+		}*/
 		return false;
 	}
 	bool IsContainedBy( const GeometricObject<T>& other ) const override
