@@ -21,6 +21,7 @@ public:
 		Normal,
 		Collided,
 		NeedToSplit,
+		NeedToScaleUP,
 		NeedToDestroy
 	};
 
@@ -171,17 +172,17 @@ public:
 					const float distance = distVec.GetLength();
 					const float ovelapDist = (distance - GetSize() - other.GetSize()) * 0.5f;
 
-					/*
-					// Calc Velocity from dist-normal Vec
-					const Vec2<float> normalVec = distVec.GetNormalLeftVec2().GetNormalized();
-					other.SetVelCollisionBy( normalVec );
-					SetVelCollisionBy( normalVec );
+					
+					//// Calc Velocity from dist-normal Vec
+					//const Vec2<float> normalVec = distVec.GetNormalLeftVec2().GetNormalized();
+					//other.SetVelCollisionBy( normalVec );
+					//SetVelCollisionBy( normalVec );
 
-					// Displace this and other
-					const Vec2<float> distOverlapVec = distVec.GetNormalized() * ovelapDist;
-					SetCenter( GetCenter() - distOverlapVec );
-					other.SetCenter( other.GetCenter() + distOverlapVec );
-					*/
+					//// Displace this and other
+					//const Vec2<float> distOverlapVec = distVec.GetNormalized() * ovelapDist;
+					//SetCenter( GetCenter() - distOverlapVec );
+					//other.SetCenter( other.GetCenter() + distOverlapVec );
+					
 
 					objState = State::Collided;
 					other.objState = State::Collided;
@@ -196,8 +197,6 @@ public:
 					other.objState = State::Collided;
 				}
 			}
-
-			
 		}
 	}
 

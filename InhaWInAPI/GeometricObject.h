@@ -102,7 +102,6 @@ public:
 		transform =  transform_in;
 	}
 
-
 	bool CheckVerticesSAT( const GeometricObject<T>& shape1, const GeometricObject<T>& shape2 ) const
 	{
 		for ( int vIdx = 0; vIdx < shape1.vertices.size(); ++vIdx )
@@ -146,6 +145,43 @@ public:
 		{
 			return false;
 		}
+		return true;
+	}
+
+	bool CheckCircleOverlapWithConvex_SAT( const GeometricObject<T>& convex, const GeometricObject<T>& circle ) const
+	{
+		for ( int vIdx = 0; vIdx < convex.vertices.size(); ++vIdx )
+		{
+			const int vIdxNext = (vIdx + 1) % convex.vertices.size();
+			Vec2<T> axisProj = (convex.vertices[vIdx] - convex.vertices[vIdxNext]).GetNormalLeftVec2();
+
+			float minThis = INFINITY;
+			float maxThis = -INFINITY;
+			for ( auto e : convex.vertices )
+			{
+				const float p = e * axisProj;
+				minThis = (std::min)(minThis, p);
+				maxThis = (std::max)(maxThis, p);
+			}
+
+			float minOther = INFINITY;
+			float maxOther = -INFINITY;
+
+			const Vec2<T> normalizedAxis = axisProj.GetNormalized();
+			float p = (circle.vertices[0] + (normalizedAxis * circle.GetSize())) * axisProj;
+			minOther = (std::min)(minOther, p);
+			maxOther = (std::max)(maxOther, p);
+			p = (circle.vertices[0] - (normalizedAxis * circle.GetSize())) * axisProj;
+			minOther = (std::min)(minOther, p);
+			maxOther = (std::max)(maxOther, p);
+
+
+			if ( !(maxOther >= minThis && maxThis >= minOther) )
+			{
+				return false;
+			}
+		}
+
 		return true;
 	}
 
@@ -194,7 +230,7 @@ public:
 		}
 		else if ( const Rect<T>* pRect = dynamic_cast<const Rect<T>*>(&other) )
 		{
-			return this->GeometricOverlap_SAT( other );
+			return this->CheckCircleOverlapWithConvex_SAT( other, *this );
 		}
 		return false;
 	}
@@ -360,12 +396,13 @@ public:
 	{
 		if ( const Rect<T>* pRect = dynamic_cast<const Rect<T>*>(&other) )
 		{
-			return right > pRect->left && left < pRect->right&& top > pRect->bottom && bottom < pRect->top;
-		}/*
+			//return right > pRect->left && left < pRect->right&& top > pRect->bottom && bottom < pRect->top;
+			return this->GeometricOverlap_SAT( other );
+		}
 		else if ( const Circle<T>* pCircle = dynamic_cast<const Circle<T>*>(&other) )
 		{
-			return this->GeometricOverlap_SAT( other );
-		}*/
+			return this->CheckCircleOverlapWithConvex_SAT( *this, other );
+		}
 		return false;
 	}
 	bool IsContainedBy( const GeometricObject<T>& other ) const override
