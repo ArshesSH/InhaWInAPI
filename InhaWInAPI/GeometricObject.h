@@ -32,9 +32,8 @@ public:
 	}
 	virtual ~GeometricObject() {}
 
-	virtual bool IsOverlapWith( const GeometricObject<T>& ) const { return false; }
-	virtual bool IsCollideWith( const GeometricObject<T>& ) const { return false; }
-	virtual bool IsContainedBy( const GeometricObject<T>& ) const { return false; }
+	virtual bool IsOverlapWith( const GeometricObject<T>& ) const = 0;
+	virtual bool IsContainedBy( const GeometricObject<T>& ) const = 0;
 	virtual bool IsContains( const GeometricObject<T>& ) const { return false; }
 	virtual bool IsContains( const Vec2<T>& ) const { return false; }
 	virtual bool IsContains( T, T ) const { return false; }
@@ -42,10 +41,10 @@ public:
 	virtual double GetPerimeter() const { return 0; }
 	virtual T GetRadius() const { return 0; }
 	virtual RECT GetRECT() const { return { 0,0,0,0 }; }
-	virtual T GetSize() const { return (T)0; };
+	virtual T GetSize() const = 0;
 	virtual void Draw( HDC hdc ) const = 0;
 	virtual void DrawTransformed( HDC hdc, const Mat3<T>& transform_in ) const { return; }
-	virtual void DrawDebug( HDC hdc ) const { return; }
+	virtual void DrawDebug( HDC hdc ) const = 0;
 	double GetDistanceWith( const GeometricObject<T>& other ) const
 	{
 		const Vec2<T> vDist = other.center - center;
@@ -171,6 +170,36 @@ public:
 		return false;
 	}
 
+	bool CheckConvexOverlapWithLine( const Vec2<T>& line ) const
+	{
+		for ( int vIdx = 0; vIdx < vertices.size(); ++vIdx )
+		{
+			const int vIdxNext = (vIdx + 1) % vertices.size();
+			Vec2<T> axisProj = (vertices[vIdx] - vertices[vIdxNext]).GetNormalLeftVec2();
+
+			float minThis = INFINITY;
+			float maxThis = -INFINITY;
+			for ( auto e : vertices )
+			{
+				const float p = e * axisProj;
+				minThis = (std::min)(minThis, p);
+				maxThis = (std::max)(maxThis, p);
+			}
+
+			float minOther = INFINITY;
+			float maxOther = -INFINITY;
+			const float p = line * axisProj;
+			minOther = (std::min)(minOther, p);
+			maxOther = (std::max)(maxOther, p);
+
+			if ( !(maxOther >= minThis && maxThis >= minOther) )
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
 	bool CheckConvexOverlapWithCircle( const GeometricObject<T>& convex, const GeometricObject<T>& circle ) const
 	{
 		for ( int vIdx = 0; vIdx < convex.vertices.size(); ++vIdx )
@@ -203,7 +232,6 @@ public:
 				return false;
 			}
 		}
-
 		return true;
 	}
 
@@ -413,7 +441,21 @@ public:
 		GeometricObject<T>::vertices.resize( 4 );
 		SetVertices();
 	}
+	Rect( const Vec2<T>& topLeft, const Vec2<T>& bottomRight )
+		:
+		GeometricObject<T>( (topLeft + bottomRight)* (T)0.5 ),
+		width( bottomRight.x - topLeft.x ),
+		height( bottomRight.y - topLeft.y )
+	{
+		const T halfWidth = (T)0.5 * width;
+		outerRadius = (T)std::sqrt( halfWidth * halfWidth + halfWidth * halfWidth );
+		GeometricObject<T>::vertices.resize( 4 );
+		SetVertices();
+	}
+
 	~Rect() {}
+
+
 	bool IsOverlapWith( const GeometricObject<T>& other ) const override
 	{
 		if ( const Rect<T>* pRect = dynamic_cast<const Rect<T>*>(&other) )
@@ -596,6 +638,22 @@ public:
 		SetVertices();
 	}
 
+	bool IsOverlapWith( const GeometricObject<T>& other ) const override
+	{
+		return false;
+	}
+
+	bool IsContainedBy( const GeometricObject<T>& other ) const override
+	{
+		if ( const Circle<T>* pCircle = dynamic_cast<const Circle<T>*>(&other) )
+		{
+			const Vec2<T> distanceSq = GeometricObject<T>::center - pCircle->GetCenter();
+			const T difference = pCircle->GetRadius() - outerRadius;
+			return distanceSq.GetLength() < difference;
+		}
+		return false;
+	}
+
 	void SetCenter( const Vec2<T>& center_in ) override
 	{
 		GeometricObject<T>::center = center_in;
@@ -653,6 +711,10 @@ public:
 		return { left, top, right, bottom };
 	}
 	
+	T GetSize() const override
+	{
+		return outerRadius;
+	}
 private:
 	void SetVertices()
 	{
