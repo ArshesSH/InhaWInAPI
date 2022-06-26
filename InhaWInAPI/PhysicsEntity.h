@@ -5,6 +5,8 @@
 #include <memory>
 #include <random>
 #include "MathSH.h"
+#include "GameMode.h"
+
 
 class PhysicsEntity
 {
@@ -62,58 +64,6 @@ public:
 		}
 	}
 
-	void Update( float dt, const RECT& walls )
-	{
-		time += dt;
-		collideTime += dt;
-		MovePos( dt );
-		DoWallCollision( walls );
-		SetAngle( spinFreq * time );
-		pObj->ApplyTransformation( Mat3<float>::Rotation( angle ) );
-
-		if ( objState == State::Collided )
-		{
-			if ( collideTime >= 0.03f )
-			{
-				objState = State::Normal;
-				collideTime = 0.0f;
-			}
-		}
-
-	}
-
-	void Draw( HDC hdc ) const
-	{
-		if ( objState == State::Normal )
-		{
-			pObj->Draw( hdc );
-		}
-		else if ( objState == State::Collided )
-		{
-			pObj->DrawDebug( hdc );
-		}
-	}
-
-	void SetVelCollisionByTwoPointLine( const Vec2<float>& lhs, const Vec2<float>& rhs )
-	{
-		const Vec2<float> lineDirect = (lhs - rhs).GetNormalized();
-		const Vec2<float> changedVel = lineDirect * (vel * lineDirect) * 2.0f - vel;
-		vel = changedVel;
-	}
-	void SetVelCollisionBy( const Vec2<float>& line )
-	{
-		vel = line * (vel * line) * 2.0f - vel;
-	}
-
-	bool IsCollideWith( const PhysicsEntity& other )
-	{
-		return pObj->IsOverlapWith( *(other.pObj) );
-	}
-
-	Vec2<float> GetCenter() const
-	{
-		return pObj->GetCenter();
-	}
 	bool operator==( const PhysicsEntity& rhs ) const
 	{
 		return id == rhs.id;
@@ -123,13 +73,36 @@ public:
 		return id != rhs.id;
 	}
 
-	bool WasCollided() const
+	void Update( float dt, const RECT& walls );
+	void Draw( HDC hdc ) const;
+
+	//void SetVelCollisionByTwoPointLine( const Vec2<float>& lhs, const Vec2<float>& rhs )
+	//{
+	//	const Vec2<float> lineDirect = (lhs - rhs).GetNormalized();
+	//	const Vec2<float> changedVel = lineDirect * (vel * lineDirect) * 2.0f - vel;
+	//	vel = changedVel;
+	//}
+	//void SetVelCollisionBy( const Vec2<float>& line )
+	//{
+	//	vel = line * (vel * line) * 2.0f - vel;
+	//}
+
+	//bool IsCollideWith( const PhysicsEntity& other )
+	//{
+	//	return pObj->IsOverlapWith( *(other.pObj) );
+	//}
+
+	Vec2<float> GetCenter() const
 	{
-		return objState == State::Collided;
+		return pObj->GetCenter();
 	}
 	void SetCenter( const Vec2<float>& c )
 	{
 		pObj->SetCenter( c );
+	}
+	bool WasCollided() const
+	{
+		return objState == State::Collided;
 	}
 	int GetID() const
 	{
@@ -159,79 +132,24 @@ public:
 	{
 		return pObj->GetRadius();
 	}
-	void SetVelocity( const Vec2<float> v )
+	Vec2<float> GetVelocity() const
+	{
+		return vel;
+	}
+	void SetVelocity( const Vec2<float>& v )
 	{
 		vel = v;
 	}
-
-	void DoEntityCollisionWith( PhysicsEntity& other )
+	void SetState( const State& s )
 	{
-		//if ( !WasCollided() && !other.WasCollided() )
-		{
-			if ( id != other.id )
-			{
-				Vec2<float> correctionVec;
-				if ( objType == Type::Circle )
-				{
-					if ( other.objType == Type::Circle )
-					{
-						if ( CheckCircleOverlap( *this, other ) )
-						{
-							// Displace this and other
-							const Vec2<float> distVec = GetCenter() - other.GetCenter();
-							const float distance = distVec.GetLength();
-							const float ovelapDist = (distance - GetSize() - other.GetSize()) * 0.5f;
-							const Vec2<float> distOverlapVec = distVec.GetNormalized() * ovelapDist;
-							SetCenter( GetCenter() - distOverlapVec );
-							other.SetCenter( other.GetCenter() + distOverlapVec );
-
-							std::swap( vel, other.vel );
-
-							objState = State::Collided;
-							other.objState = State::Collided;
-						}
-					}
-					else if ( other.objType == Type::Rect )
-					{
-						if ( CheckConvexOverlapWithCircle( other, *this ) )
-						{
-							objState = State::Collided;
-							other.objState = State::Collided;
-						}
-					}
-				}
-				else
-				{
-					if ( other.objType == Type::Circle )
-					{
-						if ( CheckConvexOverlapWithCircle( *this, other ) )
-						{
-							objState = State::Collided;
-							other.objState = State::Collided;
-						}
-					}
-					else
-					{
-						if ( CheckConvexOverlapWithConvex( *this, other ) )
-						{
-							objState = State::Collided;
-							other.objState = State::Collided;
-						}
-					}
-				}
-			}
-		}
-
+		objState = s;
 	}
+
+	void DoEntityCollisionWith( PhysicsEntity& other, const GameMode& curMode );
+	
 
 	void UpdateEntityByState()
 	{
-		if ( objState == State::Collided )
-		{
-			if ( objType == Type::Circle )
-			{
-			}
-		}
 	}
 
 private:

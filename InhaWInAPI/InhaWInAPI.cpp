@@ -142,7 +142,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static FrameTimer ft;
     static float dt = 0.0f;
     static PhysicsField field;
-    static GameMode mode;
+    static GameMode gameMode;
 
     switch (message)
     {
@@ -153,7 +153,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_TIMER:
     {
         dt = ft.Mark();
-        field.Update( dt, rcClient );
+        field.Update( dt, rcClient, gameMode );
         InvalidateRect( hWnd, nullptr, true );
 
     }
@@ -186,7 +186,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         
         field.Draw( hdc );
 
-
         EndPaint( hWnd, &ps );
         }
        break;
@@ -205,19 +204,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         switch ( wParam )
         {
         case 1:
-            mode = GameMode::Collision;
+            gameMode = GameMode::Collision;
             break;
 
         case 2:
-            mode = GameMode::Combine;
+            gameMode = GameMode::Combine;
             break;
 
         case 3:
-            mode = GameMode::Split;
+            gameMode = GameMode::Split;
             break;
 
         default:
-            mode = GameMode::Collision;
+            gameMode = GameMode::Collision;
             break;
         }
     }

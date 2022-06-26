@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include "PhysicsEntity.h"
+#include "GameMode.h"
 
 class PhysicsField
 {
@@ -28,7 +29,7 @@ public:
 		field.emplace_back( PhysicsEntity( PhysicsEntity::Type::Star, pos, id ) );
 	}
 
-	void Update(float dt, const RECT& w)
+	void Update(float dt, const RECT& w, const GameMode& curMode)
 	{
 		for ( auto& e : field )
 		{
@@ -36,7 +37,7 @@ public:
 
 			for ( auto& other : field )
 			{
-				e.DoEntityCollisionWith( other );
+				e.DoEntityCollisionWith( other, curMode );
 			}
 		}
 

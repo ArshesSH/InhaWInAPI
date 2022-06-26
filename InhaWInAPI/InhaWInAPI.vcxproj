@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CollisionEffect.h" />
     <ClInclude Include="FrameTimer.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="GeometricObject.h" />
@@ -149,12 +150,14 @@
     <ClInclude Include="PhysicsField.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TemplatedSwitch.h" />
     <ClInclude Include="Vec2.h" />
     <ClInclude Include="Vec2W.h" />
     <ClInclude Include="Vec3.h" />
     <ClInclude Include="GameMode.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CollisionEffect.cpp" />
     <ClCompile Include="FrameTimer.cpp" />
     <ClCompile Include="InhaWInAPI.cpp" />
     <ClCompile Include="PhysicsEntity.cpp" />
