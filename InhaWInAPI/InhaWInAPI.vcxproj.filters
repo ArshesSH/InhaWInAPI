@@ -54,6 +54,9 @@
     <ClInclude Include="Vec2W.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GameMode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="InhaWInAPI.cpp">

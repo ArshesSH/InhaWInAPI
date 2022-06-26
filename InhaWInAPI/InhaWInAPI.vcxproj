@@ -152,6 +152,7 @@
     <ClInclude Include="Vec2.h" />
     <ClInclude Include="Vec2W.h" />
     <ClInclude Include="Vec3.h" />
+    <ClInclude Include="GameMode.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FrameTimer.cpp" />

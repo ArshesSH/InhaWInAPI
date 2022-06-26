@@ -4,6 +4,7 @@
 #include "Mat3.h"
 #include <memory>
 #include <random>
+#include "MathSH.h"
 
 class PhysicsEntity
 {
@@ -61,7 +62,7 @@ public:
 		}
 	}
 
-	void Update(float dt, const RECT& walls)
+	void Update( float dt, const RECT& walls )
 	{
 		time += dt;
 		collideTime += dt;
@@ -78,9 +79,10 @@ public:
 				collideTime = 0.0f;
 			}
 		}
+
 	}
 
-	void Draw(HDC hdc) const
+	void Draw( HDC hdc ) const
 	{
 		if ( objState == State::Normal )
 		{
@@ -108,11 +110,6 @@ public:
 		return pObj->IsOverlapWith( *(other.pObj) );
 	}
 
-	bool IsCollideWith_SAT( const PhysicsEntity& other )
-	{
-		return pObj->CheckConvexOverlapWithConvex( *(other.pObj) );
-	}
-
 	Vec2<float> GetCenter() const
 	{
 		return pObj->GetCenter();
@@ -125,12 +122,12 @@ public:
 	{
 		return id != rhs.id;
 	}
-	
+
 	bool WasCollided() const
 	{
 		return objState == State::Collided;
 	}
-	void SetCenter(const Vec2<float>& c)
+	void SetCenter( const Vec2<float>& c )
 	{
 		pObj->SetCenter( c );
 	}
@@ -144,13 +141,13 @@ public:
 	}
 	void SetAngle( float angle_in )
 	{
-		angle = angle_in;
+		angle = MathSH::WrapAngle( angle_in );
 	}
 	float GetAngle() const
 	{
 		return angle;
 	}
-	void SetScale(float scale_in)
+	void SetScale( float scale_in )
 	{
 		scale = scale_in;
 	}
@@ -162,6 +159,10 @@ public:
 	{
 		return pObj->GetRadius();
 	}
+	void SetVelocity( const Vec2<float> v )
+	{
+		vel = v;
+	}
 
 	void DoEntityCollisionWith( PhysicsEntity& other )
 	{
@@ -169,30 +170,25 @@ public:
 		{
 			if ( id != other.id )
 			{
+				Vec2<float> correctionVec;
 				if ( objType == Type::Circle )
 				{
 					if ( other.objType == Type::Circle )
 					{
-						if ( IsCollideWith( other ) )
+						if ( CheckCircleOverlap( *this, other ) )
 						{
-						const Vec2<float> distVec = GetCenter() - other.GetCenter();
-						const float distance = distVec.GetLength();
-						const float ovelapDist = (distance - GetSize() - other.GetSize()) * 0.5f;
+							// Displace this and other
+							const Vec2<float> distVec = GetCenter() - other.GetCenter();
+							const float distance = distVec.GetLength();
+							const float ovelapDist = (distance - GetSize() - other.GetSize()) * 0.5f;
+							const Vec2<float> distOverlapVec = distVec.GetNormalized() * ovelapDist;
+							SetCenter( GetCenter() - distOverlapVec );
+							other.SetCenter( other.GetCenter() + distOverlapVec );
 
-						// Calc Velocity from dist-normal Vec
-						//const Vec2<float> normalVec = distVec.GetNormalLeftVec2().GetNormalized();
-						//other.SetVelCollisionBy( normalVec );
-						//SetVelCollisionBy( normalVec );
+							std::swap( vel, other.vel );
 
-						std::swap( vel, other.vel );
-
-						// Displace this and other
-						const Vec2<float> distOverlapVec = distVec.GetNormalized() * ovelapDist;
-						SetCenter( GetCenter() - distOverlapVec );
-						other.SetCenter( other.GetCenter() + distOverlapVec );
-
-						objState = State::Collided;
-						other.objState = State::Collided;
+							objState = State::Collided;
+							other.objState = State::Collided;
 						}
 					}
 					else if ( other.objType == Type::Rect )
@@ -204,7 +200,7 @@ public:
 						}
 					}
 				}
-				else //if ( objType == Type::Rect )
+				else
 				{
 					if ( other.objType == Type::Circle )
 					{
@@ -214,7 +210,7 @@ public:
 							other.objState = State::Collided;
 						}
 					}
-					else //if ( other.objType == Type::Rect )
+					else
 					{
 						if ( CheckConvexOverlapWithConvex( *this, other ) )
 						{
@@ -225,7 +221,7 @@ public:
 				}
 			}
 		}
-		
+
 	}
 
 	void UpdateEntityByState()
@@ -263,9 +259,9 @@ private:
 		if ( objType == Type::Rect )
 		{
 			const Vec2<float> topLeftVec{ (float)walls.left, (float)walls.top };
-			const Vec2<float> bottomRightVec { (float)walls.right, (float)walls.bottom };
+			const Vec2<float> bottomRightVec{ (float)walls.right, (float)walls.bottom };
 
-			if (CheckConvexOverlapWithborder( topLeftVec, bottomRightVec ) )
+			if ( CheckConvexOverlapWithborder( topLeftVec, bottomRightVec ) )
 			{
 				objState = State::Collided;
 			}
@@ -388,38 +384,11 @@ private:
 
 			std::swap( convex1.vel, convex2.vel );
 
+
 			return true;
 		}
 		return false;
 	}
-
-	//bool CheckConcaveOverlapWithConcave( PhysicsEntity& concave1, PhysicsEntity& concave2 )
-	//{
-	//	// First, Check Collision with Outer Circles
-	//	if ( CheckCircleOverlap( concave1, concave2 ) )
-	//	{
-	//		Vec2<float> minTranslateVecConvex1;
-	//		Vec2<float> minTranslateVecConvex2;
-	//		// Then, Do OBB Collision detect for convex1 and convex2
-	//		if ( CheckVerticesSAT( convex1, convex2, minTranslateVecConvex1 ) == false )
-	//		{
-	//			return false;
-	//		}
-	//		if ( CheckVerticesSAT( convex2, convex1, minTranslateVecConvex2 ) == false )
-	//		{
-	//			return false;
-	//		}
-
-	//		// Set Center Correction
-	//		convex1.CenterCorrection( minTranslateVecConvex1 );
-	//		convex2.CenterCorrection( minTranslateVecConvex2 );
-
-	//		std::swap( convex1.vel, convex2.vel );
-
-	//		return true;
-	//	}
-	//	return false;
-	//}
 
 	bool CheckConvexOverlapWithCircle( PhysicsEntity& convexEntity, PhysicsEntity& circleEntity )
 	{
@@ -553,4 +522,3 @@ private:
 	Type objType;
 	State objState = State::Normal;
 };
-

@@ -9,6 +9,7 @@
 #include "GeometricObject.h"
 #include "FrameTimer.h"
 #include "PhysicsField.h"
+#include "GameMode.h"
 
 
 #define MAX_LOADSTRING 100
@@ -141,7 +142,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static FrameTimer ft;
     static float dt = 0.0f;
     static PhysicsField field;
-
+    static GameMode mode;
 
     switch (message)
     {
@@ -197,11 +198,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
     case WM_KEYDOWN:
     {
-        
     }
     break;
     case WM_CHAR:
     {
+        switch ( wParam )
+        {
+        case 1:
+            mode = GameMode::Collision;
+            break;
+
+        case 2:
+            mode = GameMode::Combine;
+            break;
+
+        case 3:
+            mode = GameMode::Split;
+            break;
+
+        default:
+            mode = GameMode::Collision;
+            break;
+        }
     }
     break;
     case WM_KEYUP:
