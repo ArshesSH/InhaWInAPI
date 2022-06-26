@@ -28,8 +28,8 @@ public:
 	template<class T, class U, class F>
 	void Case( F f )
 	{
-		static_assert(std::is_base_of<PhysicsEntity, T>::value, "Template param type T must be derived from PhysicsEntity!");
-		static_assert(std::is_base_of<PhysicsEntity, U>::value, "Template param type U must be derived from PhysicsEntity!");
+		static_assert(std::is_base_of<PhysicsEntity::EntityType, T>::value, "Template param type T must be derived from PhysicsEntity::EntityType!");
+		static_assert(std::is_base_of<PhysicsEntity::EntityType, U>::value, "Template param type U must be derived from PhysicsEntity::EntityType!");
 		handlers[{typeid(T), typeid(U)}] = f;
 		handlers[{typeid(U), typeid(T)}] = std::bind(
 			f, std::placeholders::_2, std::placeholders::_1
@@ -38,15 +38,15 @@ public:
 	template<class T, class U>
 	bool HasCase() const
 	{
-		static_assert(std::is_base_of<PhysicsEntity, T>::value, "Template param type T must be derived from PhysicsEntity!");
-		static_assert(std::is_base_of<PhysicsEntity, U>::value, "Template param type U must be derived from PhysicsEntity!");
+		static_assert(std::is_base_of<PhysicsEntity::EntityType, T>::value, "Template param type T must be derived from PhysicsEntity::EntityType!");
+		static_assert(std::is_base_of<PhysicsEntity::EntityType, U>::value, "Template param type U must be derived from PhysicsEntity::EntityType!");
 		return handlers.count( { typeid(T),typeid(U) } ) > 0;
 	}
 	template<class T, class U>
 	void ClearCase()
 	{
-		static_assert(std::is_base_of<PhysicsEntity, T>::value, "Template param type T must be derived from PhysicsEntity!");
-		static_assert(std::is_base_of<PhysicsEntity, U>::value, "Template param type U must be derived from PhysicsEntity!");
+		static_assert(std::is_base_of<PhysicsEntity::EntityType, T>::value, "Template param type T must be derived from PhysicsEntity::EntityType!");
+		static_assert(std::is_base_of<PhysicsEntity::EntityType, U>::value, "Template param type U must be derived from PhysicsEntity::EntityType!");
 		handlers.erase( { typeid(T),typeid(U) } );
 		handlers.erase( { typeid(U),typeid(T) } );
 	}
@@ -57,7 +57,7 @@ public:
 	}
 	void Switch( PhysicsEntity& a, PhysicsEntity& b )
 	{
-		auto i = handlers.find( { typeid(a),typeid(b) } );
+		auto i = handlers.find( { typeid(a.GetEntityType()),typeid(b.GetEntityType()) } );
 		if ( i != handlers.end() )
 		{
 			i->second( a, b );

@@ -13,9 +13,17 @@ class PhysicsEntity
 public:
 	enum class Type
 	{
-		Rect,
 		Circle,
+		Rect,
 		Star
+	};
+
+	class EntityType
+	{
+	public:
+		virtual ~EntityType() = default;
+		virtual Type GetType() const = 0;
+		virtual std::unique_ptr<EntityType> Clone() const = 0;
 	};
 
 public:
@@ -29,40 +37,8 @@ public:
 	};
 
 public:
-	PhysicsEntity( PhysicsEntity::Type type, const Vec2<int>& pos, int id )
-		:
-		id( id ),
-		objType( type )
-	{
-		std::random_device rd;
-		std::mt19937 rng( rd() );
-		std::uniform_int_distribution<int> sizeGen( 50, 50 );
-		std::uniform_real_distribution<float> speedGen( 100, 100 );
-		std::uniform_real_distribution<float> dirXGen( -1, 1 );
-		std::uniform_real_distribution<float> dirYGen( -1, 1 );
-		std::uniform_real_distribution<float> rotateGen( -0, 0.5 );
+	PhysicsEntity( Type type, const Vec2<int>& pos, int id );
 
-		speed = speedGen( rng );
-		vel = { dirXGen( rng ), dirYGen( rng ) };
-		vel *= speed;
-		spinFreq = (float)(rotateGen( rng ) * MathSH::PI);
-
-		if ( type == Type::Rect )
-		{
-			const int size = sizeGen( rng ) * 2;
-			pObj = std::make_unique<Rect<float>>( (float)pos.x, (float)pos.y, size, size );
-		}
-		else if ( type == Type::Circle )
-		{
-			pObj = std::make_unique<Circle<float>>( (float)pos.x, (float)pos.y, sizeGen( rng ) );
-		}
-		else if ( type == Type::Star )
-		{
-			std::uniform_int_distribution<int> flareGen( 5, 9 );
-			const Vec2<float> posStar{ (float)pos.x, (float)pos.y };
-			pObj = std::make_unique<Star<float>>( posStar, sizeGen( rng ), flareGen( rng ) );
-		}
-	}
 
 	bool operator==( const PhysicsEntity& rhs ) const
 	{
@@ -144,6 +120,15 @@ public:
 	{
 		objState = s;
 	}
+	const EntityType& GetEntityType() const
+	{
+		return *pType;
+	}
+	
+	std::vector<Vec2<float>> GetVertices() const
+	{
+		return pObj->GetVertices();
+	}
 
 	void DoEntityCollisionWith( PhysicsEntity& other, const GameMode& curMode );
 	
@@ -152,6 +137,7 @@ public:
 	{
 	}
 
+	bool CheckCircleOverlap( const PhysicsEntity& e1, const PhysicsEntity& e2 ) const;
 private:
 	void MovePos( float dt )
 	{
@@ -268,15 +254,7 @@ private:
 		return true;
 	}
 
-	bool CheckCircleOverlap( const PhysicsEntity& e1, const PhysicsEntity& e2 ) const
-	{
-		Circle<float> c1( e1.GetCenter(), e1.GetOuterRadius() );
-		Circle<float> c2( e2.GetCenter(), e2.GetOuterRadius() );
 
-		const Vec2<float> distance = c1.GetCenter() - c2.GetCenter();
-		const float sumOfRadius = c1.GetRadius() + c2.GetRadius();
-		return fabs( distance.x * distance.x + distance.y * distance.y ) < sumOfRadius * sumOfRadius;
-	}
 
 	bool CheckConvexOverlapWithConvex( PhysicsEntity& convex1, PhysicsEntity& convex2 )
 	{
@@ -448,6 +426,9 @@ private:
 
 private:
 	std::unique_ptr<GeometricObject<float>> pObj;
+	std::unique_ptr<EntityType> pType;
+
+	Type objType;
 
 	Vec2<float> vel;
 	Mat3<float> transform = Mat3<float>::Identity();
@@ -458,6 +439,5 @@ private:
 	float time = 0.0f;
 	float collideTime = 0.0f;
 	int id;
-	Type objType;
 	State objState = State::Normal;
 };

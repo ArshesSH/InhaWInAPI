@@ -1,21 +1,44 @@
 #pragma once
 
 #include "PhysicsEntity.h"
+
 namespace CollisionEffect
 {
-	class CircleToCircle
+	class CollideType
 	{
 	public:
-		void operator()( PhysicsEntity& e1, PhysicsEntity& e2 );
-	private:
-		bool CheckCircleOverlap( const PhysicsEntity& e1, const PhysicsEntity& e2 ) const
+		class CircleToCircle
 		{
-			Circle<float> c1( e1.GetCenter(), e1.GetOuterRadius() );
-			Circle<float> c2( e2.GetCenter(), e2.GetOuterRadius() );
+		public:
+			void operator()( PhysicsEntity& circle1, PhysicsEntity& circle2 );
+		private:
+		};
 
-			const Vec2<float> distance = c1.GetCenter() - c2.GetCenter();
-			const float sumOfRadius = c1.GetRadius() + c2.GetRadius();
-			return fabs( distance.x * distance.x + distance.y * distance.y ) < sumOfRadius * sumOfRadius;
-		}
+	public:
+		class ConvexToConvex
+		{
+		public:
+			void operator()( PhysicsEntity& convex1, PhysicsEntity& convex2 );
+		private:
+			bool CheckVerticesSAT( const PhysicsEntity& refObj, const PhysicsEntity& target, Vec2<float>& minTransVec );
+			bool CheckConvexOverlapWithConvex( PhysicsEntity& convex1, PhysicsEntity& convex2,
+				Vec2<float>& minTransVec1, Vec2<float>& minTransVec2 );
+		};
+
+	public:
+		class ConvexToCircle
+		{
+		public:
+			void operator()( PhysicsEntity& convex, PhysicsEntity& circle );
+		private:
+			bool CheckConvexOverlapWitchCircle( PhysicsEntity& convex, PhysicsEntity& circle, Vec2<float>& minTransVec );
+		};
+
+	private:
+		static bool CheckCircleOverlap( const PhysicsEntity& e1, const PhysicsEntity& e2 );
+		static void CenterCorrection( PhysicsEntity& entity, const Vec2<float>& correctionVec );
+		inline static void SwapVelocity( PhysicsEntity& e1, PhysicsEntity& e2 );
 	};
+
+
 }

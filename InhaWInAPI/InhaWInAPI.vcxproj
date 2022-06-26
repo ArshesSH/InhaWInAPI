@@ -147,6 +147,7 @@
     <ClInclude Include="Mat3.h" />
     <ClInclude Include="MathSH.h" />
     <ClInclude Include="PhysicsEntity.h" />
+    <ClInclude Include="PhysicsEntityTypes.h" />
     <ClInclude Include="PhysicsField.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
