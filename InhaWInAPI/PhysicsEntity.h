@@ -34,11 +34,11 @@ public:
 	{
 		std::random_device rd;
 		std::mt19937 rng( rd() );
-		std::uniform_int_distribution<int> sizeGen( 20, 50 );
-		std::uniform_real_distribution<float> speedGen( 100, 200 );
+		std::uniform_int_distribution<int> sizeGen( 50, 50 );
+		std::uniform_real_distribution<float> speedGen( 100, 100 );
 		std::uniform_real_distribution<float> dirXGen( -1, 1 );
 		std::uniform_real_distribution<float> dirYGen( -1, 1 );
-		std::uniform_real_distribution<float> rotateGen( -2, 2 );
+		std::uniform_real_distribution<float> rotateGen( -0, 0.5 );
 
 		speed = speedGen( rng );
 		vel = { dirXGen( rng ), dirYGen( rng ) };
@@ -263,7 +263,6 @@ private:
 
 			if ( CheckConvexOverlapWithborder( topLeftVec, bottomRightVec ) )
 			{
-				objState = State::Collided;
 			}
 		}
 		else
@@ -392,57 +391,79 @@ private:
 
 	bool CheckConvexOverlapWithCircle( PhysicsEntity& convexEntity, PhysicsEntity& circleEntity )
 	{
-		const auto convexVertices = convexEntity.pObj->GetVertices();
-
-		// Create Translate things
-		float minTranslateScalar = INFINITY;
-		Vec2<float> minTranslateNormalVec;
-
-		for ( int vIdx = 0; vIdx < convexVertices.size(); ++vIdx )
+		if ( CheckCircleOverlap( convexEntity, circleEntity ) )
 		{
-			const int vIdxNext = (vIdx + 1) % convexVertices.size();
-			Vec2<float> axisProj = (convexVertices[vIdx] - convexVertices[vIdxNext]).GetNormalLeftVec2().GetNormalized();
+			const auto convexVertices = convexEntity.pObj->GetVertices();
 
-			float minThis = INFINITY;
-			float maxThis = -INFINITY;
-			for ( auto e : convexVertices )
+			// Create Translate things
+			float minTranslateScalar = INFINITY;
+			Vec2<float> minTranslateNormalVec;
+
+			for ( int vIdx = 0; vIdx < convexVertices.size(); ++vIdx )
 			{
-				const float p = e * axisProj;
-				minThis = (std::min)(minThis, p);
-				maxThis = (std::max)(maxThis, p);
+				const int vIdxNext = (vIdx + 1) % convexVertices.size();
+				Vec2<float> axisProj = (convexVertices[vIdx] - convexVertices[vIdxNext]).GetNormalRightVec2().GetNormalized();
+
+				float minThis = INFINITY;
+				float maxThis = -INFINITY;
+				for ( auto e : convexVertices )
+				{
+					const float p = e * axisProj;
+					minThis = (std::min)(minThis, p);
+					maxThis = (std::max)(maxThis, p);
+				}
+
+				float minOther = INFINITY;
+				float maxOther = -INFINITY;
+
+				const Vec2<float> normalizedAxis = axisProj.GetNormalized();
+				float p = (circleEntity.GetCenter() + (normalizedAxis * circleEntity.GetSize())) * axisProj;
+				minOther = (std::min)(minOther, p);
+				maxOther = (std::max)(maxOther, p);
+				p = (circleEntity.GetCenter() - (normalizedAxis * circleEntity.GetSize())) * axisProj;
+				minOther = (std::min)(minOther, p);
+				maxOther = (std::max)(maxOther, p);
+
+				if ( !(maxOther >= minThis && maxThis >= minOther) )
+				{
+					return false;
+				}
+
+				// Get MinTranslate Scalr and Vector
+				const float curMinTrans = maxOther - minThis;
+				if ( curMinTrans < minTranslateScalar )
+				{
+					minTranslateScalar = curMinTrans;
+					minTranslateNormalVec = axisProj;
+				}
 			}
 
-			float minOther = INFINITY;
-			float maxOther = -INFINITY;
+			convexEntity.CenterCorrection( minTranslateNormalVec * (minTranslateScalar * 0.5f) );
+			circleEntity.CenterCorrection( minTranslateNormalVec * (minTranslateScalar * -0.5f) );
+			std::swap( convexEntity.vel, circleEntity.vel );
 
-			const Vec2<float> normalizedAxis = axisProj.GetNormalized();
-			float p = (circleEntity.GetCenter() + (normalizedAxis * circleEntity.GetSize())) * axisProj;
-			minOther = (std::min)(minOther, p);
-			maxOther = (std::max)(maxOther, p);
-			p = (circleEntity.GetCenter() - (normalizedAxis * circleEntity.GetSize())) * axisProj;
-			minOther = (std::min)(minOther, p);
-			maxOther = (std::max)(maxOther, p);
-
-			if ( !(maxOther >= minThis && maxThis >= minOther) )
-			{
-				return false;
-			}
-
-			// Get MinTranslate Scalr and Vector
-			const float curMinTrans = maxOther - minThis;
-			if ( curMinTrans < minTranslateScalar )
-			{
-				minTranslateScalar = curMinTrans;
-				minTranslateNormalVec = axisProj;
-			}
+			return true;
 		}
+		return false;
+	}
 
-		convexEntity.CenterCorrection( minTranslateNormalVec * (minTranslateScalar * 0.5f) );
-		circleEntity.CenterCorrection( minTranslateNormalVec * (minTranslateScalar * -0.5f) );
-		std::swap( convexEntity.vel, circleEntity.vel );
-
+	bool CheckConvexOverlapWithCircleAlter( PhysicsEntity& convexEntity, PhysicsEntity& circleEntity )
+	{
+		const Vec2<float> centerAxis = circleEntity.GetCenter() - convexEntity.GetCenter();
+		
+		const auto convexVertices = convexEntity.pObj->GetVertices();
+		
+		float minConvex = INFINITY;
+		float maxConvex = -INFINITY;
+		for ( auto v : convexVertices )
+		{
+			const float p = v * centerAxis;
+			minConvex = (std::min)( minConvex, p );
+			maxConvex = (std::max)( maxConvex, p );
+		}
 		return true;
 	}
+
 
 	bool CheckConvexOverlapWithborder( const Vec2<float>& topLeft, const Vec2<float>& bottomRight )
 	{
