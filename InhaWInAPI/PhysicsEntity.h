@@ -223,14 +223,6 @@ public:
 						}
 					}
 
-
-
-					//if ( IsCollideWith( other ) )
-					//{
-					//	objState = State::Collided;
-					//	other.objState = State::Collided;
-					//}
-
 				}
 			}
 		}
@@ -350,9 +342,8 @@ private:
 				return false;
 			}
 
-			const float a1 = maxThis - minOther;
-			const float a2 = maxOther - minThis;
-			const float curMinTrans = a2;
+			// Get MinTranslate Scalr and Vector
+			const float curMinTrans = maxOther - minThis;
 			if ( curMinTrans < minTranslateScalar )
 			{
 				minTranslateScalar = curMinTrans;
@@ -360,12 +351,16 @@ private:
 			}
 		}
 
+		// return minimum translate Vector
 		minTransVec = minTranslateNormalVec * (minTranslateScalar * 0.5);
 		return true;
 	}
 
-	bool CheckCircleOverlap( const Circle<float>& c1, const Circle<float>& c2 ) const
+	bool CheckCircleOverlap( const PhysicsEntity& e1, const PhysicsEntity& e2 ) const
 	{
+		Circle<float> c1( e1.GetCenter(), e1.GetOuterRadius() );
+		Circle<float> c2( e2.GetCenter(), e2.GetOuterRadius() );
+
 		const Vec2<float> distance = c1.GetCenter() - c2.GetCenter();
 		const float sumOfRadius = c1.GetRadius() + c2.GetRadius();
 		return fabs( distance.x * distance.x + distance.y * distance.y ) < sumOfRadius * sumOfRadius;
@@ -373,12 +368,8 @@ private:
 
 	bool CheckConvexOverlapWithConvex( PhysicsEntity& convex1, PhysicsEntity& convex2 )
 	{
-		// Create Cricles for Overlap Optimising
-		Circle<float> thisOuterCircle( convex1.GetCenter(), convex1.GetOuterRadius() );
-		Circle<float> otherOuterCircle( convex2.GetCenter(), convex2.GetOuterRadius() );
-
 		// First, Check Collision with Outer Circles
-		if ( CheckCircleOverlap( thisOuterCircle, otherOuterCircle ) )
+		if ( CheckCircleOverlap( convex1, convex2 ) )
 		{
 			Vec2<float> minTranslateVecConvex1;
 			Vec2<float> minTranslateVecConvex2;
@@ -392,17 +383,24 @@ private:
 				return false;
 			}
 
+			// Set Center Correction
 			convex1.CenterCorrection( minTranslateVecConvex1 );
 			convex2.CenterCorrection( minTranslateVecConvex2 );
+
+			std::swap( convex1.vel, convex2.vel );
 
 			return true;
 		}
 		return false;
 	}
 
-	bool CheckConvexOverlapWithCircle( const PhysicsEntity& convexEntity, const PhysicsEntity& circleEntity ) const
+	bool CheckConvexOverlapWithCircle( PhysicsEntity& convexEntity, PhysicsEntity& circleEntity )
 	{
 		const auto convexVertices = convexEntity.pObj->GetVertices();
+
+		// Create Translate things
+		float minTranslateScalar = INFINITY;
+		Vec2<float> minTranslateNormalVec;
 
 		for ( int vIdx = 0; vIdx < convexVertices.size(); ++vIdx )
 		{
@@ -433,7 +431,20 @@ private:
 			{
 				return false;
 			}
+
+			// Get MinTranslate Scalr and Vector
+			const float curMinTrans = maxOther - minThis;
+			if ( curMinTrans < minTranslateScalar )
+			{
+				minTranslateScalar = curMinTrans;
+				minTranslateNormalVec = axisProj;
+			}
 		}
+
+		convexEntity.CenterCorrection( minTranslateNormalVec * (minTranslateScalar * 0.5f) );
+		circleEntity.CenterCorrection( minTranslateNormalVec * (minTranslateScalar * -0.5f) );
+		std::swap( convexEntity.vel, circleEntity.vel );
+
 		return true;
 	}
 
@@ -450,7 +461,6 @@ private:
 		float minVertical = INFINITY;
 		float maxVertical = -INFINITY;
 
-	
 		std::vector<Vec2<float>> vertices = pObj->GetVertices();
 
 		for ( auto e : vertices )
@@ -501,7 +511,6 @@ private:
 		}
 		return false;
 	}
-
 
 private:
 	std::unique_ptr<GeometricObject<float>> pObj;
