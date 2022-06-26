@@ -221,6 +221,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
     break;
 
+    case WM_MBUTTONDOWN:
+    {
+        field.AddStar( { LOWORD( lParam ), HIWORD( lParam ) } );
+        InvalidateRect( hWnd, nullptr, true );
+    }
+    break;
+
     case WM_RBUTTONDOWN:
     {
         field.AddRect( { LOWORD( lParam ), HIWORD( lParam ) } );

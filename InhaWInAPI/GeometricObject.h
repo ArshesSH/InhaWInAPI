@@ -276,10 +276,6 @@ public:
 		{
 			return this->IsOverlapWith( *pCircle );
 		}
-		else if ( const Rect<T>* pRect = dynamic_cast<const Rect<T>*>(&other) )
-		{
-			return this->CheckConvexOverlapWithCircle( other, *this );
-		}
 		return false;
 	}
 	bool IsOverlapWith( const Circle<T>& other ) const
@@ -582,7 +578,6 @@ public:
 		Polygon( hdc, &points[0], (int)points.size() );
 		SelectObject( hdc, oldBrush );
 		DeleteObject( hBrush );
-
 	}
 	RECT GetRECT() const override
 	{
@@ -680,7 +675,6 @@ public:
 			const POINT p = { (int)e.x, (int)e.y };
 			points.push_back( p );
 		}
-
 		Polygon( hdc, &points[0], size );
 	}
 
@@ -699,7 +693,6 @@ public:
 		HBRUSH hBrush;
 		HBRUSH oldBrush;
 		hBrush = CreateSolidBrush( 0x0000FF );
-		SelectObject( hdc, hBrush );
 		oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
 		Polygon( hdc, &points[0], size );
 		SelectObject( hdc, oldBrush );
@@ -716,6 +709,10 @@ public:
 	}
 	
 	T GetSize() const override
+	{
+		return outerRadius;
+	}
+	T GetRadius() const override
 	{
 		return outerRadius;
 	}

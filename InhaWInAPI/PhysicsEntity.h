@@ -34,7 +34,7 @@ public:
 		std::random_device rd;
 		std::mt19937 rng( rd() );
 		std::uniform_int_distribution<int> sizeGen( 20, 50 );
-		std::uniform_real_distribution<float> speedGen( 200, 300 );
+		std::uniform_real_distribution<float> speedGen( 100, 200 );
 		std::uniform_real_distribution<float> dirXGen( -1, 1 );
 		std::uniform_real_distribution<float> dirYGen( -1, 1 );
 		std::uniform_real_distribution<float> rotateGen( -2, 2 );
@@ -55,7 +55,7 @@ public:
 		}
 		else if ( type == Type::Star )
 		{
-			std::uniform_int_distribution<int> flareGen( 5, 12 );
+			std::uniform_int_distribution<int> flareGen( 5, 9 );
 			const Vec2<float> posStar{ (float)pos.x, (float)pos.y };
 			pObj = std::make_unique<Star<float>>( posStar, sizeGen( rng ), flareGen( rng ) );
 		}
@@ -204,16 +204,8 @@ public:
 						}
 					}
 				}
-				else if ( objType == Type::Rect )
+				else //if ( objType == Type::Rect )
 				{
-					if ( other.objType == Type::Rect )
-					{
-						if ( CheckConvexOverlapWithConvex( *this, other ) )
-						{
-							objState = State::Collided;
-							other.objState = State::Collided;
-						}
-					}
 					if ( other.objType == Type::Circle )
 					{
 						if ( CheckConvexOverlapWithCircle( *this, other ) )
@@ -222,7 +214,14 @@ public:
 							other.objState = State::Collided;
 						}
 					}
-
+					else //if ( other.objType == Type::Rect )
+					{
+						if ( CheckConvexOverlapWithConvex( *this, other ) )
+						{
+							objState = State::Collided;
+							other.objState = State::Collided;
+						}
+					}
 				}
 			}
 		}
@@ -394,6 +393,34 @@ private:
 		return false;
 	}
 
+	//bool CheckConcaveOverlapWithConcave( PhysicsEntity& concave1, PhysicsEntity& concave2 )
+	//{
+	//	// First, Check Collision with Outer Circles
+	//	if ( CheckCircleOverlap( concave1, concave2 ) )
+	//	{
+	//		Vec2<float> minTranslateVecConvex1;
+	//		Vec2<float> minTranslateVecConvex2;
+	//		// Then, Do OBB Collision detect for convex1 and convex2
+	//		if ( CheckVerticesSAT( convex1, convex2, minTranslateVecConvex1 ) == false )
+	//		{
+	//			return false;
+	//		}
+	//		if ( CheckVerticesSAT( convex2, convex1, minTranslateVecConvex2 ) == false )
+	//		{
+	//			return false;
+	//		}
+
+	//		// Set Center Correction
+	//		convex1.CenterCorrection( minTranslateVecConvex1 );
+	//		convex2.CenterCorrection( minTranslateVecConvex2 );
+
+	//		std::swap( convex1.vel, convex2.vel );
+
+	//		return true;
+	//	}
+	//	return false;
+	//}
+
 	bool CheckConvexOverlapWithCircle( PhysicsEntity& convexEntity, PhysicsEntity& circleEntity )
 	{
 		const auto convexVertices = convexEntity.pObj->GetVertices();
@@ -447,7 +474,6 @@ private:
 
 		return true;
 	}
-
 
 	bool CheckConvexOverlapWithborder( const Vec2<float>& topLeft, const Vec2<float>& bottomRight )
 	{
