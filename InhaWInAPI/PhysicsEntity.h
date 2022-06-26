@@ -158,41 +158,91 @@ public:
 	{
 		return scale;
 	}
+	float GetOuterRadius() const
+	{
+		return pObj->GetRadius();
+	}
 
 	void DoEntityCollisionWith( PhysicsEntity& other )
 	{
-		if ( id != other.id )
+		//if ( !WasCollided() && !other.WasCollided() )
 		{
-			if ( objType == Type::Circle )
+			if ( id != other.id )
 			{
-				if ( IsCollideWith( other ) && !WasCollided() && !other.WasCollided() )
+				if ( objType == Type::Circle )
 				{
-					const Vec2<float> distVec = GetCenter() - other.GetCenter();
-					const float distance = distVec.GetLength();
-					const float ovelapDist = (distance - GetSize() - other.GetSize()) * 0.5f;
+					if ( other.objType == Type::Circle )
+					{
+						if ( IsCollideWith( other ) )
+						{
+						const Vec2<float> distVec = GetCenter() - other.GetCenter();
+						const float distance = distVec.GetLength();
+						const float ovelapDist = (distance - GetSize() - other.GetSize()) * 0.5f;
 
-					//// Calc Velocity from dist-normal Vec
-					//const Vec2<float> normalVec = distVec.GetNormalLeftVec2().GetNormalized();
-					//other.SetVelCollisionBy( normalVec );
-					//SetVelCollisionBy( normalVec );
+						// Calc Velocity from dist-normal Vec
+						//const Vec2<float> normalVec = distVec.GetNormalLeftVec2().GetNormalized();
+						//other.SetVelCollisionBy( normalVec );
+						//SetVelCollisionBy( normalVec );
 
-					//// Displace this and other
-					//const Vec2<float> distOverlapVec = distVec.GetNormalized() * ovelapDist;
-					//SetCenter( GetCenter() - distOverlapVec );
-					//other.SetCenter( other.GetCenter() + distOverlapVec );
-					
-					objState = State::Collided;
-					other.objState = State::Collided;
+						std::swap( vel, other.vel );
+
+						// Displace this and other
+						const Vec2<float> distOverlapVec = distVec.GetNormalized() * ovelapDist;
+						SetCenter( GetCenter() - distOverlapVec );
+						other.SetCenter( other.GetCenter() + distOverlapVec );
+
+						objState = State::Collided;
+						other.objState = State::Collided;
+						}
+					}
+					else if ( other.objType == Type::Rect )
+					{
+						if ( CheckConvexOverlapWithCircle( other, *this ) )
+						{
+							objState = State::Collided;
+							other.objState = State::Collided;
+						}
+					}
+				}
+				else if ( objType == Type::Rect )
+				{
+					if ( other.objType == Type::Rect )
+					{
+						if ( CheckConvexOverlapWithConvex( *this, other ) )
+						{
+							objState = State::Collided;
+							other.objState = State::Collided;
+						}
+					}
+					if ( other.objType == Type::Circle )
+					{
+						if ( CheckConvexOverlapWithCircle( *this, other ) )
+						{
+							objState = State::Collided;
+							other.objState = State::Collided;
+						}
+					}
+
+
+
+					//if ( IsCollideWith( other ) )
+					//{
+					//	objState = State::Collided;
+					//	other.objState = State::Collided;
+					//}
 
 				}
 			}
-			else if ( objType == Type::Rect )
+		}
+		
+	}
+
+	void UpdateEntityByState()
+	{
+		if ( objState == State::Collided )
+		{
+			if ( objType == Type::Circle )
 			{
-				if ( IsCollideWith( other ) )
-				{
-					objState = State::Collided;
-					other.objState = State::Collided;
-				}
 			}
 		}
 	}
@@ -211,6 +261,12 @@ private:
 	{
 		vel.y = -vel.y;
 	}
+
+	void CenterCorrection( const Vec2<float>& correctionVec )
+	{
+		this->SetCenter( this->GetCenter() + correctionVec );
+	}
+
 	void DoWallCollision( const RECT& walls )
 	{
 		if ( objType == Type::Rect )
@@ -254,20 +310,26 @@ private:
 		transform = transformation_in * transform;
 	}
 
-	bool CheckVerticesSAT( const PhysicsEntity& shape1, const PhysicsEntity& shape2 ) const
+	// SAT Check for reference obj to target
+	bool CheckVerticesSAT( const PhysicsEntity& refObj, const PhysicsEntity& target, Vec2<float>& minTransVec )
 	{
-		auto shape1Vertices = shape1.pObj->GetVertices();
-		auto shape1VerticesSize = shape1Vertices.size();
-		auto shape2Vertices = shape2.pObj->GetVertices();
+		auto refObjVertices = refObj.pObj->GetVertices();
+		auto refObjVerticesSize = refObjVertices.size();
+		auto targetVertices = target.pObj->GetVertices();
 
-		for ( int vIdx = 0; vIdx < shape1VerticesSize; ++vIdx )
+		// Create Translate things
+		float minTranslateScalar = INFINITY;
+		Vec2<float> minTranslateNormalVec;
+
+		// Check for each axis
+		for ( int vIdx = 0; vIdx < refObjVerticesSize; ++vIdx )
 		{
-			const int vIdxNext = (vIdx + 1) % shape1VerticesSize;
-			Vec2<float> axisProj = (shape1Vertices[vIdx] - shape1Vertices[vIdxNext]).GetNormalLeftVec2();
+			const int vIdxNext = (vIdx + 1) % refObjVerticesSize;
+			Vec2<float> axisProj = (refObjVertices[vIdx] - refObjVertices[vIdxNext]).GetNormalRightVec2().GetNormalized();
 
 			float minThis = INFINITY;
 			float maxThis = -INFINITY;
-			for ( auto e : shape1Vertices )
+			for ( auto e : refObjVertices )
 			{
 				const float p = e * axisProj;
 				minThis = (std::min)(minThis, p);
@@ -276,7 +338,7 @@ private:
 
 			float minOther = INFINITY;
 			float maxOther = -INFINITY;
-			for ( auto e : shape2Vertices )
+			for ( auto e : targetVertices )
 			{
 				const float p = e * axisProj;
 				minOther = (std::min)(minOther, p);
@@ -287,7 +349,18 @@ private:
 			{
 				return false;
 			}
+
+			const float a1 = maxThis - minOther;
+			const float a2 = maxOther - minThis;
+			const float curMinTrans = a2;
+			if ( curMinTrans < minTranslateScalar )
+			{
+				minTranslateScalar = curMinTrans;
+				minTranslateNormalVec = axisProj;
+			}
 		}
+
+		minTransVec = minTranslateNormalVec * (minTranslateScalar * 0.5);
 		return true;
 	}
 
@@ -298,45 +371,96 @@ private:
 		return fabs( distance.x * distance.x + distance.y * distance.y ) < sumOfRadius * sumOfRadius;
 	}
 
-	bool CheckConvexOverlapWithConvex( const PhysicsEntity& other ) const
+	bool CheckConvexOverlapWithConvex( PhysicsEntity& convex1, PhysicsEntity& convex2 )
 	{
 		// Create Cricles for Overlap Optimising
-		Circle<float> thisOuterCircle( pObj->GetCenter(), pObj->GetRadius() );
-		Circle<float> otherOuterCircle( other.pObj->GetCenter(), other.pObj->GetRadius() );
+		Circle<float> thisOuterCircle( convex1.GetCenter(), convex1.GetOuterRadius() );
+		Circle<float> otherOuterCircle( convex2.GetCenter(), convex2.GetOuterRadius() );
 
+		// First, Check Collision with Outer Circles
 		if ( CheckCircleOverlap( thisOuterCircle, otherOuterCircle ) )
 		{
-			if ( CheckVerticesSAT( *this, other ) == false )
+			Vec2<float> minTranslateVecConvex1;
+			Vec2<float> minTranslateVecConvex2;
+			// Then, Do OBB Collision detect for convex1 and convex2
+			if ( CheckVerticesSAT( convex1, convex2, minTranslateVecConvex1 ) == false )
 			{
 				return false;
 			}
-			if ( CheckVerticesSAT( other, *this ) == false )
+			if ( CheckVerticesSAT( convex2, convex1, minTranslateVecConvex2 ) == false )
 			{
 				return false;
 			}
+
+			convex1.CenterCorrection( minTranslateVecConvex1 );
+			convex2.CenterCorrection( minTranslateVecConvex2 );
+
 			return true;
 		}
 		return false;
 	}
 
+	bool CheckConvexOverlapWithCircle( const PhysicsEntity& convexEntity, const PhysicsEntity& circleEntity ) const
+	{
+		const auto convexVertices = convexEntity.pObj->GetVertices();
+
+		for ( int vIdx = 0; vIdx < convexVertices.size(); ++vIdx )
+		{
+			const int vIdxNext = (vIdx + 1) % convexVertices.size();
+			Vec2<float> axisProj = (convexVertices[vIdx] - convexVertices[vIdxNext]).GetNormalLeftVec2().GetNormalized();
+
+			float minThis = INFINITY;
+			float maxThis = -INFINITY;
+			for ( auto e : convexVertices )
+			{
+				const float p = e * axisProj;
+				minThis = (std::min)(minThis, p);
+				maxThis = (std::max)(maxThis, p);
+			}
+
+			float minOther = INFINITY;
+			float maxOther = -INFINITY;
+
+			const Vec2<float> normalizedAxis = axisProj.GetNormalized();
+			float p = (circleEntity.GetCenter() + (normalizedAxis * circleEntity.GetSize())) * axisProj;
+			minOther = (std::min)(minOther, p);
+			maxOther = (std::max)(maxOther, p);
+			p = (circleEntity.GetCenter() - (normalizedAxis * circleEntity.GetSize())) * axisProj;
+			minOther = (std::min)(minOther, p);
+			maxOther = (std::max)(maxOther, p);
+
+			if ( !(maxOther >= minThis && maxThis >= minOther) )
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+
 	bool CheckConvexOverlapWithborder( const Vec2<float>& topLeft, const Vec2<float>& bottomRight )
 	{
+		// Create Normalized Horizontal and Vertical Window Sized Vectors
 		const Vec2<float> NormalizedHorizontal = Vec2<float>( bottomRight.x - topLeft.x, topLeft.y ).GetNormalized();
 		const Vec2<float> NormalizedVertical = Vec2<float>( topLeft.x, bottomRight.y - topLeft.y ).GetNormalized();
 
+		// Set Projection vals
 		float minHorizon = INFINITY;
 		float maxHorizon = -INFINITY;
 		float minVertical = INFINITY;
 		float maxVertical = -INFINITY;
 
-		// Check Horizontal
+	
 		std::vector<Vec2<float>> vertices = pObj->GetVertices();
+
 		for ( auto e : vertices )
 		{
+			// Check Horizontal
 			const float pHorizon = e * NormalizedHorizontal;
 			minHorizon = (std::min)(minHorizon, pHorizon);
 			maxHorizon = (std::max)(maxHorizon, pHorizon);
 
+			// Case Left Collision
 			if ( minHorizon < topLeft.x )
 			{
 				const Vec2<float> minimumTranslateVec = NormalizedHorizontal * (topLeft.x - e.x);
@@ -344,6 +468,7 @@ private:
 				ReboundX();
 				return true;
 			}
+			// Case Right Collision
 			else if ( bottomRight.x < maxHorizon )
 			{
 				const Vec2<float> minimumTranslateVec = NormalizedHorizontal * (bottomRight.x - e.x);
@@ -352,10 +477,12 @@ private:
 				return true;
 			}
 
+			// Check Vertical
 			const float pVertical = e * NormalizedVertical;
 			minVertical = (std::min)(minVertical, pVertical);
 			maxVertical = (std::max)(maxVertical, pVertical);
 
+			// Case Top Collision
 			if ( minVertical < topLeft.y )
 			{
 				const Vec2<float> minimumTranslateVec = NormalizedVertical * (topLeft.y - e.y);
@@ -363,6 +490,7 @@ private:
 				ReboundY();
 				return true;
 			}
+			// Case Bottom Collision
 			else if ( bottomRight.y < maxVertical )
 			{
 				const Vec2<float> minimumTranslateVec = NormalizedVertical * (bottomRight.y - e.y);

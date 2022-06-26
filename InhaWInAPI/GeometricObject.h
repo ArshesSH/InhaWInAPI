@@ -143,6 +143,40 @@ public:
 		return true;
 	}
 
+	bool CheckVerticesRectSAT( const GeometricObject<T>& shape1, const GeometricObject<T>& shape2 ) const
+	{
+		for ( int vIdx = 0; vIdx < shape1.vertices.size(); ++vIdx )
+		{
+			const int vIdxNext = (vIdx + 1) % shape1.vertices.size();
+			Vec2<T> axisProj = (shape1.vertices[vIdx] - shape1.vertices[vIdxNext]).GetNormalLeftVec2();
+
+			float minThis = INFINITY;
+			float maxThis = -INFINITY;
+			for ( auto e : shape1.vertices )
+			{
+				const float p = e * axisProj;
+				minThis = (std::min)(minThis, p);
+				maxThis = (std::max)(maxThis, p);
+			}
+
+			float minOther = INFINITY;
+			float maxOther = -INFINITY;
+			for ( auto e : shape2.vertices )
+			{
+				const float p = e * axisProj;
+				minOther = (std::min)(minOther, p);
+				maxOther = (std::max)(maxOther, p);
+			}
+
+			if ( !(maxOther >= minThis && maxThis >= minOther) )
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+
 	bool CheckCircleOverlap(const Circle<T>& c1, const Circle<T>& c2) const
 	{
 		const Vec2<T> distance = c1.center - c2.center;
@@ -166,56 +200,6 @@ public:
 				return false;
 			}
 			return true;
-		}
-		return false;
-	}
-
-	bool CheckConvexOverlapWithborder( const Vec2<T>& topLeft, const Vec2<T>& bottomRight )
-	{
-		const Vec2<T> NormalizedHorizontal = Vec2<T>( bottomRight.x - topLeft.x, topLeft.y ).GetNormalized();
-		const Vec2<T> NormalizedVertical = Vec2<T>( topLeft.x, bottomRight.y - topLeft.y ).GetNormalized();
-
-		float minHorizon = INFINITY;
-		float maxHorizon = -INFINITY;
-		float minVertical = INFINITY;
-		float maxVertical = -INFINITY;
-
-		// Check Horizontal
-		for ( auto e : vertices )
-		{
-			const float pHorizon = e * NormalizedHorizontal;
-			minHorizon = (std::min)(minHorizon, pHorizon);
-			maxHorizon = (std::max)(maxHorizon, pHorizon);
-
-			if ( minHorizon < topLeft.x )
-			{
-				const Vec2<T> minimumTranslateVec = NormalizedHorizontal* (topLeft.x - e.x);
-				SetCenter( GetCenter() + minimumTranslateVec );
-				return true;
-			}
-			else if ( bottomRight.x < maxHorizon )
-			{
-				const Vec2<T> minimumTranslateVec = NormalizedHorizontal* (bottomRight.x - e.x);
-				SetCenter( GetCenter() + minimumTranslateVec );
-				return true;
-			}
-
-			const float pVertical = e * NormalizedVertical;
-			minVertical = (std::min)(minVertical, pVertical);
-			maxVertical = (std::max)(maxVertical, pVertical);
-
-			if ( minVertical < topLeft.y )
-			{
-				const Vec2<T> minimumTranslateVec = NormalizedVertical * (topLeft.y - e.y);
-				SetCenter( GetCenter() + minimumTranslateVec );
-				return true;
-			}
-			else if ( bottomRight.y < maxVertical )
-			{
-				const Vec2<T> minimumTranslateVec = NormalizedVertical * (bottomRight.y - e.y);
-				SetCenter( GetCenter() + minimumTranslateVec );
-				return true;
-			}
 		}
 		return false;
 	}
@@ -564,7 +548,7 @@ public:
 		{
 			points.push_back( {(LONG)e.x, (LONG)e.y} );
 		}
-		Polygon( hdc, &points[0], points.size() );
+		Polygon( hdc, &points[0], (int)points.size() );
 	}
 
 	void DrawTransformed( HDC hdc, const Mat3<T>& transform_in ) const override
@@ -581,7 +565,7 @@ public:
 
 		const std::vector<POINT> vertices = { topLeft, topRight, bottomRight, bottomLeft };
 
-		Polygon( hdc, &vertices[0], vertices.size() );
+		Polygon( hdc, &vertices[0], (int)vertices.size() );
 	}
 	void DrawDebug( HDC hdc ) const override
 	{
@@ -595,7 +579,7 @@ public:
 		HBRUSH oldBrush;
 		hBrush = CreateSolidBrush( 0x0000FF );
 		oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
-		Polygon( hdc, &points[0], points.size() );
+		Polygon( hdc, &points[0], (int)points.size() );
 		SelectObject( hdc, oldBrush );
 		DeleteObject( hBrush );
 
@@ -687,7 +671,7 @@ public:
 
 	void Draw( HDC hdc ) const override
 	{
-		const int size = GeometricObject<T>::vertices.size();
+		const int size = (int)GeometricObject<T>::vertices.size();
 		std::vector<POINT> points;
 		points.reserve( size );
 
@@ -702,7 +686,7 @@ public:
 
 	void DrawDebug( HDC hdc ) const override
 	{
-		const int size = GeometricObject<T>::vertices.size();
+		const int size = (int)GeometricObject<T>::vertices.size();
 		std::vector<POINT> points;
 		points.reserve( size );
 
