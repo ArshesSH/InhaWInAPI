@@ -21,6 +21,7 @@ public:
 private:
 	std::vector<PhysicsEntity> field;
 	PatternMatchingListener typePairSwitch;
-	GameMode curMode;
+	GameMode curMode = GameMode::Collision;
+	GameMode lastMode = curMode;
 	std::wstring modeOutput;
 };

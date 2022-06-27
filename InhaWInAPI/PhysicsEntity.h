@@ -73,7 +73,7 @@ public:
 	void ReboundX();
 	void ReboundY();
 
-	void DoEntityCollisionWith( PhysicsEntity& other, const GameMode& curMode, class PatternMatchingListener& listener );
+	void DoEntityCollisionWith( PhysicsEntity& other, class PatternMatchingListener& listener );
 
 private:
 	void ApplyTransformation( const Mat3<float>& transformation_in );

@@ -73,13 +73,13 @@ void PhysicsEntity::Update( float dt, const RECT& walls )
 
 void PhysicsEntity::Draw( HDC hdc ) const
 {
-	if ( objState == State::Normal )
-	{
-		pObj->Draw( hdc );
-	}
-	else if ( objState == State::Collided )
+	if ( objState == State::Collided )
 	{
 		pObj->DrawDebug( hdc );
+	}
+	else
+	{
+		pObj->Draw( hdc );
 	}
 }
 
@@ -213,7 +213,7 @@ void PhysicsEntity::SetCenterY( float y )
 	 vel.y = -vel.y;
  }
 
-void PhysicsEntity::DoEntityCollisionWith( PhysicsEntity& other, const GameMode& curMode, PatternMatchingListener& listener )
+void PhysicsEntity::DoEntityCollisionWith( PhysicsEntity& other, PatternMatchingListener& listener )
 {
 	//if ( !WasCollided() && !other.WasCollided() )
 	{
@@ -221,10 +221,7 @@ void PhysicsEntity::DoEntityCollisionWith( PhysicsEntity& other, const GameMode&
 		{
 			Vec2<float> correctionVec;
 
-			if ( curMode == GameMode::Collision )
-			{
-				listener.Switch( *this, other );
-			}
+			listener.Switch( *this, other );
 		}
 	}
 }

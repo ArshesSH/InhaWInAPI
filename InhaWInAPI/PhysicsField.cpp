@@ -10,7 +10,7 @@
 PhysicsField::PhysicsField( )
 {
 	CollisionManager collisionManager;
-	typePairSwitch.Case<TypeCircle, TypeCircle>( [&](PhysicsEntity& circle1, PhysicsEntity& circle2)
+	typePairSwitch.Case<TypeCircle, TypeCircle>( [&]( PhysicsEntity& circle1, PhysicsEntity& circle2 )
 		{
 			collisionManager.CircleToCircle( circle1, circle2 );
 		}
@@ -102,7 +102,7 @@ PhysicsField::PhysicsField( )
 					convex1.SetStateToCollide();
 				}
 			}
-		} 
+		}
 	);
 	typePairSwitch.Case<TypeStar, TypeStar>( [&]( PhysicsEntity& convex1, PhysicsEntity& convex2 )
 		{
@@ -156,7 +156,7 @@ void PhysicsField::Update( float dt, const RECT& w, const GameMode& curMode_in )
 		it->Update(dt, w);
 		for ( auto itOther = it; itOther != field.end(); ++itOther )
 		{
-			it->DoEntityCollisionWith( *itOther, curMode, typePairSwitch );
+			it->DoEntityCollisionWith( *itOther, typePairSwitch );
 		}
 	}
 
