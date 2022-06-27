@@ -7,7 +7,10 @@
 
 PhysicsField::PhysicsField()
 {
-	auto tmp = [](PhysicsEntity& a, PhysicsEntity& b) {};
+	auto tmp = [](PhysicsEntity& a, PhysicsEntity& b)
+	{
+
+	};
 	typePairSwitch.Case<TypeCircle, TypeCircle>( tmp );
 	typePairSwitch.Case<TypeRect, TypeCircle>( tmp );
 	typePairSwitch.Case<TypeStar, TypeCircle>( tmp );
