@@ -139,7 +139,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CollisionEffect.h" />
     <ClInclude Include="FrameTimer.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Game.h" />
@@ -160,7 +159,6 @@
     <ClInclude Include="CollisionManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CollisionEffect.cpp" />
     <ClCompile Include="FrameTimer.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="InhaWInAPI.cpp" />

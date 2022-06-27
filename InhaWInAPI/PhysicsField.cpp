@@ -1,6 +1,5 @@
 #include "PhysicsField.h"
 
-#include "CollisionEffect.h"
 #include "CollisionManager.h"
 #include "framework.h"
 #include "GameMode.h"

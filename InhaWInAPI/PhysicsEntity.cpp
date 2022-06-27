@@ -2,7 +2,6 @@
 
 #include "PhysicsEntityTypeTraits.h"
 #include "PatternMatchingListener.h"
-#include "CollisionEffect.h"
 
 PhysicsEntity::PhysicsEntity( Type type, const Vec2<int>& pos, int id )
 	:
