@@ -42,7 +42,7 @@ void CollisionEffect::CollideType::ConvexToConvex::operator()( PhysicsEntity& co
 	}
 }
 
-bool CollisionEffect::CollideType::ConvexToConvex::CheckVerticesSAT( const PhysicsEntity& refObj, const PhysicsEntity& target, Vec2<float>& minTransVec )
+inline bool CollisionEffect::CollideType::ConvexToConvex::CheckVerticesSAT( const PhysicsEntity& refObj, const PhysicsEntity& target, Vec2<float>& minTransVec )
 {
 	auto refObjVertices = refObj.GetVertices();
 	auto refObjVerticesSize = refObjVertices.size();
@@ -95,7 +95,7 @@ bool CollisionEffect::CollideType::ConvexToConvex::CheckVerticesSAT( const Physi
 	return true;
 }
 
-bool CollisionEffect::CollideType::ConvexToConvex::CheckConvexOverlapWithConvex( PhysicsEntity& convex1, PhysicsEntity& convex2,
+inline bool CollisionEffect::CollideType::ConvexToConvex::CheckConvexOverlapWithConvex( PhysicsEntity& convex1, PhysicsEntity& convex2,
 	Vec2<float>& minTransVec1, Vec2<float>& minTransVec2 )
 {
 	// First, Check Collision with Outer Circles
@@ -121,7 +121,7 @@ bool CollisionEffect::CollideType::ConvexToConvex::CheckConvexOverlapWithConvex(
 	return false;
 }
 
-bool CollisionEffect::CollideType::CheckCircleOverlap( const PhysicsEntity& e1, const PhysicsEntity& e2 )
+inline bool CollisionEffect::CollideType::CheckCircleOverlap( const PhysicsEntity& e1, const PhysicsEntity& e2 )
 {
 	Circle<float> c1( e1.GetCenter(), e1.GetOuterRadius() );
 	Circle<float> c2( e2.GetCenter(), e2.GetOuterRadius() );
@@ -131,7 +131,7 @@ bool CollisionEffect::CollideType::CheckCircleOverlap( const PhysicsEntity& e1, 
 	return fabs( distance.x * distance.x + distance.y * distance.y ) < sumOfRadius * sumOfRadius;
 }
 
-void CollisionEffect::CollideType::CenterCorrection( PhysicsEntity& entity, const Vec2<float>& correctionVec )
+inline void CollisionEffect::CollideType::CenterCorrection( PhysicsEntity& entity, const Vec2<float>& correctionVec )
 {
 	entity.SetCenter( entity.GetCenter() + correctionVec );
 }
@@ -158,7 +158,7 @@ void CollisionEffect::CollideType::ConvexToCircle::operator()( PhysicsEntity& co
 	}
 }
 
-bool CollisionEffect::CollideType::ConvexToCircle::CheckConvexOverlapWitchCircle( PhysicsEntity& convex, PhysicsEntity& circle, Vec2<float>& minTransVec )
+inline bool CollisionEffect::CollideType::ConvexToCircle::CheckConvexOverlapWitchCircle( PhysicsEntity& convex, PhysicsEntity& circle, Vec2<float>& minTransVec )
 {
 	if ( CheckCircleOverlap( convex, circle ) )
 	{

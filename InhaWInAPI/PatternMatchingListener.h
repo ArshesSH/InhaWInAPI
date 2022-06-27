@@ -59,7 +59,7 @@ public:
 	{
 		def = f;
 	}
-	void Switch( PhysicsEntity& a, PhysicsEntity& b )
+	inline void Switch( PhysicsEntity& a, PhysicsEntity& b )
 	{
 		auto i = handlers.find( { typeid(a.GetEntityType()),typeid(b.GetEntityType()) } );
 		if ( i != handlers.end() )
