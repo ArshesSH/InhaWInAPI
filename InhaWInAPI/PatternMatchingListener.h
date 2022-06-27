@@ -6,8 +6,11 @@
 #include <type_traits>
 #include "PhysicsEntity.h"
 
+
+// Create TypePair
 using TypePair = std::pair<const std::type_index, const std::type_index>;
 
+// Create Hash for map
 namespace std
 {
 	template <>
@@ -22,10 +25,11 @@ namespace std
 }
 
 
-class TemplateSwitch
+class PatternMatchingListener
 {
 public:
-	template<class T, class U, class F>
+	// Get TypeTrait T and U, and Functor for F, Create Both case of T,U and U,T 
+	template<typename T, typename U, typename F>
 	void Case( F f )
 	{
 		static_assert(std::is_base_of<PhysicsEntity::EntityType, T>::value, "Template param type T must be derived from PhysicsEntity::EntityType!");
@@ -35,14 +39,14 @@ public:
 			f, std::placeholders::_2, std::placeholders::_1
 		);
 	}
-	template<class T, class U>
+	template<typename T, typename U>
 	bool HasCase() const
 	{
 		static_assert(std::is_base_of<PhysicsEntity::EntityType, T>::value, "Template param type T must be derived from PhysicsEntity::EntityType!");
 		static_assert(std::is_base_of<PhysicsEntity::EntityType, U>::value, "Template param type U must be derived from PhysicsEntity::EntityType!");
 		return handlers.count( { typeid(T),typeid(U) } ) > 0;
 	}
-	template<class T, class U>
+	template<typename T, typename U>
 	void ClearCase()
 	{
 		static_assert(std::is_base_of<PhysicsEntity::EntityType, T>::value, "Template param type T must be derived from PhysicsEntity::EntityType!");
@@ -50,7 +54,7 @@ public:
 		handlers.erase( { typeid(T),typeid(U) } );
 		handlers.erase( { typeid(U),typeid(T) } );
 	}
-	template<class F>
+	template<typename F>
 	void Default( F f )
 	{
 		def = f;
@@ -72,5 +76,3 @@ private:
 	std::unordered_map<TypePair, std::function<void( PhysicsEntity&, PhysicsEntity& )>> handlers;
 	std::function<void( PhysicsEntity&, PhysicsEntity& )> def = []( PhysicsEntity&, PhysicsEntity& ) {};
 };
-
-//typedef TemplateSwitch<Color> ColorSwitch;

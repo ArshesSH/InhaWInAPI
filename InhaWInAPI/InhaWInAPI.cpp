@@ -4,12 +4,8 @@
 #include "framework.h"
 #include "InhaWInAPI.h"
 
-#include <vector>
 #include <string>
-#include "GeometricObject.h"
-#include "FrameTimer.h"
-#include "PhysicsField.h"
-#include "GameMode.h"
+#include "Game.h"
 
 
 #define MAX_LOADSTRING 100
@@ -138,24 +134,20 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    static RECT rcClient;
-    static FrameTimer ft;
-    static float dt = 0.0f;
-    static PhysicsField field;
-    static GameMode gameMode;
+    static RECT screenRect;
+    static Game mainGame;
 
     switch (message)
     {
     case WM_CREATE:
-        GetClientRect( hWnd, &rcClient );
+        GetClientRect( hWnd, &screenRect );
+        mainGame.SetClientRECT( screenRect );
         SetTimer( hWnd, 1, 0, nullptr );
         break;
     case WM_TIMER:
     {
-        dt = ft.Mark();
-        field.Update( dt, rcClient, gameMode );
+        mainGame.UpdateModel();
         InvalidateRect( hWnd, nullptr, true );
-
     }
     break;
     case WM_COMMAND:
@@ -181,10 +173,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         HDC hdc = BeginPaint( hWnd, &ps );
         // TODO: Add any drawing code that uses hdc here...
         
-        std::wstring testDT = std::to_wstring( dt );
+        std::wstring testDT = std::to_wstring( mainGame.GetDeltaTime() );
         TextOut( hdc, 100, 100, testDT.c_str(), (int)testDT.size() );
         
-        field.Draw( hdc );
+        mainGame.ComposeFrame( hdc );
 
         EndPaint( hWnd, &ps );
         }
@@ -192,7 +184,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_SIZE:
     {
         // 윈도우 창 변경 시
-        GetClientRect( hWnd, &rcClient );
+        GetClientRect( hWnd, &screenRect );
+        mainGame.SetClientRECT( screenRect );
     }
     break;
     case WM_KEYDOWN:
@@ -204,19 +197,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         switch ( wParam )
         {
         case 1:
-            gameMode = GameMode::Collision;
+            mainGame.SetCollisionMode();
             break;
 
         case 2:
-            gameMode = GameMode::Combine;
+            mainGame.SetCombineMode();
             break;
 
         case 3:
-            gameMode = GameMode::Split;
-            break;
-
-        default:
-            gameMode = GameMode::Collision;
+            mainGame.SetSplitMode();
             break;
         }
     }
@@ -228,7 +217,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     {
-        field.AddCircle( {LOWORD(lParam), HIWORD( lParam ) } );
+        mainGame.AddCircle( {LOWORD(lParam), HIWORD( lParam ) } );
         InvalidateRect( hWnd, nullptr, true );
     }
     break;
@@ -240,14 +229,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_MBUTTONDOWN:
     {
-        field.AddStar( { LOWORD( lParam ), HIWORD( lParam ) } );
+        mainGame.AddStar( { LOWORD( lParam ), HIWORD( lParam ) } );
         InvalidateRect( hWnd, nullptr, true );
     }
     break;
 
     case WM_RBUTTONDOWN:
     {
-        field.AddRect( { LOWORD( lParam ), HIWORD( lParam ) } );
+        mainGame.AddRect( { LOWORD( lParam ), HIWORD( lParam ) } );
         InvalidateRect( hWnd, nullptr, true );
     }
     break;

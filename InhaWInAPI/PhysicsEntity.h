@@ -160,7 +160,7 @@ private:
 
 	void DoWallCollision( const RECT& walls )
 	{
-		if ( objType == Type::Rect )
+		if ( pType->GetType() == Type::Rect )
 		{
 			const Vec2<float> topLeftVec{ (float)walls.left, (float)walls.top };
 			const Vec2<float> bottomRightVec{ (float)walls.right, (float)walls.bottom };
@@ -428,7 +428,6 @@ private:
 	std::unique_ptr<GeometricObject<float>> pObj;
 	std::unique_ptr<EntityType> pType;
 
-	Type objType;
 
 	Vec2<float> vel;
 	Mat3<float> transform = Mat3<float>::Identity();

@@ -1,13 +1,12 @@
 #include "PhysicsEntity.h"
 
 #include "PhysicsEntityTypes.h"
-#include "TemplatedSwitch.h"
+#include "PatternMatchingListener.h"
 #include "CollisionEffect.h"
 
 PhysicsEntity::PhysicsEntity( Type type, const Vec2<int>& pos, int id )
 	:
-	id( id ),
-	objType( type )
+	id( id )
 {
 	std::random_device rd;
 	std::mt19937 rng( rd() );
@@ -84,7 +83,7 @@ void PhysicsEntity::DoEntityCollisionWith( PhysicsEntity& other, const GameMode&
 		{
 			Vec2<float> correctionVec;
 
-			TemplateSwitch typePairSwitch;
+			static PatternMatchingListener typePairSwitch;
 
 
 			if ( curMode == GameMode::Collision )

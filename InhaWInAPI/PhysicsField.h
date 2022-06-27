@@ -1,10 +1,7 @@
 #pragma once
 
-#include "framework.h"
 #include <vector>
-#include <memory>
 #include "PhysicsEntity.h"
-#include "GameMode.h"
 
 class PhysicsField
 {
@@ -12,43 +9,11 @@ class PhysicsField
 public:
 	PhysicsField() = default;
 	
-	void AddCircle(const Vec2<int>& pos)
-	{
-		const int id = (int)field.size();
-		field.emplace_back( PhysicsEntity( PhysicsEntity::Type::Circle, pos, id ) );
-	}
-
-	void AddRect( const Vec2<int>& pos )
-	{
-		const int id = (int)field.size();
-		field.emplace_back( PhysicsEntity( PhysicsEntity::Type::Rect, pos, id ) );
-	}
-	void AddStar( const Vec2<int>& pos )
-	{
-		const int id = (int)field.size();
-		field.emplace_back( PhysicsEntity( PhysicsEntity::Type::Star, pos, id ) );
-	}
-
-	void Update(float dt, const RECT& w, const GameMode& curMode)
-	{
-		for ( auto& e : field )
-		{
-			e.Update( dt, w );
-
-			for ( auto& other : field )
-			{
-				e.DoEntityCollisionWith( other, curMode );
-			}
-		}
-
-	}
-	void Draw(HDC hdc) const
-	{
-		for ( const auto& e : field )
-		{
-			e.Draw( hdc );
-		}
-	}
+	void AddCircle( const Vec2<int>& pos );
+	void AddRect( const Vec2<int>& pos );
+	void AddStar( const Vec2<int>& pos );
+	void Update( float dt, const RECT& w, const GameMode& curMode );
+	void Draw( HDC hdc ) const;
 
 private:
 	std::vector<PhysicsEntity> field;
