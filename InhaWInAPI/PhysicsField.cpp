@@ -4,19 +4,16 @@
 #include "framework.h"
 #include "GameMode.h"
 #include "PhysicsEntityTypeTraits.h"
+#include <string>
 
 PhysicsField::PhysicsField()
 {
-	auto tmp = [](PhysicsEntity& a, PhysicsEntity& b)
-	{
-
-	};
-	typePairSwitch.Case<TypeCircle, TypeCircle>( tmp );
-	typePairSwitch.Case<TypeRect, TypeCircle>( tmp );
-	typePairSwitch.Case<TypeStar, TypeCircle>( tmp );
-	typePairSwitch.Case<TypeRect, TypeRect>( tmp );
-	typePairSwitch.Case<TypeRect, TypeStar>( tmp );
-	typePairSwitch.Case<TypeStar, TypeStar>( tmp );
+	typePairSwitch.Case<TypeCircle, TypeCircle>( CollisionEffect::CollideType::CircleToCircle() );
+	typePairSwitch.Case<TypeRect, TypeCircle>( CollisionEffect::CollideType::ConvexToCircle() );
+	typePairSwitch.Case<TypeStar, TypeCircle>( CollisionEffect::CollideType::ConvexToCircle() );
+	typePairSwitch.Case<TypeRect, TypeRect>( CollisionEffect::CollideType::ConvexToConvex() );
+	typePairSwitch.Case<TypeRect, TypeStar>( CollisionEffect::CollideType::ConvexToConvex() );
+	typePairSwitch.Case<TypeStar, TypeStar>( CollisionEffect::CollideType::ConvexToConvex() );
 }
 void PhysicsField::AddCircle( const Vec2<int>& pos )
 {
@@ -56,4 +53,6 @@ void PhysicsField::Draw( HDC hdc ) const
 	{
 		e.Draw( hdc );
 	}
+	std::wstring fieldCount = std::to_wstring( field.size() );
+	TextOut( hdc, 100, 80, fieldCount.c_str(), (int)fieldCount.size() );
 }
