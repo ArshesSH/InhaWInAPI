@@ -14,7 +14,7 @@ PhysicsEntity::PhysicsEntity( Type type, const Vec2<int>& pos, int id )
 	std::uniform_real_distribution<float> speedGen( 100, 300 );
 	std::uniform_real_distribution<float> dirXGen( -1, 1 );
 	std::uniform_real_distribution<float> dirYGen( -1, 1 );
-	std::uniform_real_distribution<float> rotateGen( -2, 2 );
+	std::uniform_real_distribution<float> rotateGen( 0, 1 );
 
 	speed = speedGen( rng );
 	vel = { dirXGen( rng ), dirYGen( rng ) };
@@ -113,10 +113,6 @@ void PhysicsEntity::Draw( HDC hdc ) const
 	return angle;
 }
 
- float PhysicsEntity::GetScale() const
-{
-	return scale;
-}
 
  PhysicsEntity::Type PhysicsEntity::GetType() const
  {
@@ -143,9 +139,42 @@ std::vector<Vec2<float>> PhysicsEntity::GetVertices() const
 	return pObj->GetVertices();
 }
 
+bool PhysicsEntity::GetStateShouldSplit() const
+{
+	return objState == State::ShouldSplit;
+}
+
+bool PhysicsEntity::GetStateShouldScaleUp() const
+{
+	return objState == State::ShouldScaleUP;
+}
+
+bool PhysicsEntity::GetStateShouldDestroy() const
+{
+	return objState == State::ShouldDestroy;
+}
+
+
+
+
 bool PhysicsEntity::WasCollided() const
 {
 	return objState == State::Collided;
+}
+
+float PhysicsEntity::GetSizeForAdd() const
+{
+	return sizeForAdd;
+}
+
+void PhysicsEntity::AddSize( float size )
+{
+	pObj->AddSize( size );
+}
+
+void PhysicsEntity::SetSizeForAdd( float size )
+{
+	sizeForAdd = size;
 }
 
 void PhysicsEntity::SetCenter( const Vec2<float>& c )
@@ -168,11 +197,6 @@ void PhysicsEntity::SetCenterY( float y )
 	angle = MathSH::WrapAngle( angle_in );
 }
 
- void PhysicsEntity::SetScale( float scale_in )
-{
-	scale = scale_in;
-}
-
  void PhysicsEntity::SetVelocity( const Vec2<float>& v )
 {
 	vel = v;
@@ -183,24 +207,29 @@ void PhysicsEntity::SetCenterY( float y )
 	objState = s;
 }
 
+ void PhysicsEntity::SetStateToNormal()
+ {
+	 objState = State::Normal;
+ }
+
  void PhysicsEntity::SetStateToCollide()
  {
 	 objState = State::Collided;
  }
 
- void PhysicsEntity::SetStateToSplit()
+ void PhysicsEntity::SetStateShouldSplit()
  {
-	 objState = State::NeedToSplit;
+	 objState = State::ShouldSplit;
  }
 
- void PhysicsEntity::SetStateToScaleUP()
+ void PhysicsEntity::SetStateShouldScaleUP()
  {
-	 objState = State::NeedToScaleUP;
+	 objState = State::ShouldScaleUP;
  }
 
- void PhysicsEntity::SetStateToDestroy()
+ void PhysicsEntity::SetStateShouldDestroy()
  {
-	 objState = State::NeedToDestroy;
+	 objState = State::ShouldDestroy;
  }
 
  void PhysicsEntity::ReboundX()

@@ -31,9 +31,9 @@ public:
 	{
 		Normal,
 		Collided,
-		NeedToSplit,
-		NeedToScaleUP,
-		NeedToDestroy
+		ShouldSplit,
+		ShouldScaleUP,
+		ShouldDestroy
 	};
 
 public:
@@ -51,25 +51,30 @@ public:
 	float GetSize() const;
 	float GetOuterRadius() const;
 	float GetAngle() const;
-	float GetScale() const;
 	Type GetType() const;
 	RECT GetRECT() const;
 	const TypeTrait& GetEntityType() const;
 	Vec2<float> GetVelocity() const;
 	std::vector<Vec2<float>> GetVertices() const;
+	bool GetStateShouldSplit() const;
+	bool GetStateShouldScaleUp() const;
+	bool GetStateShouldDestroy() const;
 	bool WasCollided() const;
+	float GetSizeForAdd() const;
 
+	void AddSize( float size );
+	void SetSizeForAdd( float size );
 	void SetCenter( const Vec2<float>& c );
 	void SetCenterX( float x );
 	void SetCenterY( float y );
 	void SetAngle( float angle_in );
-	void SetScale( float scale_in );
 	void SetVelocity( const Vec2<float>& v );
 	void SetState( const State& s );
+	void SetStateToNormal();
 	void SetStateToCollide();
-	void SetStateToSplit();
-	void SetStateToScaleUP();
-	void SetStateToDestroy();
+	void SetStateShouldSplit();
+	void SetStateShouldScaleUP();
+	void SetStateShouldDestroy();
 	void ReboundX();
 	void ReboundY();
 
@@ -94,7 +99,7 @@ private:
 	Vec2<float> vel;
 	Mat3<float> transform = Mat3<float>::Identity();
 	float speed;
-	float scale = 1.0f;
+	float sizeForAdd = 0.0f;
 	float angle = 0.0f;
 	float spinFreq = 0.0f;
 	float time = 0.0f;

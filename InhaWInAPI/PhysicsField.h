@@ -17,8 +17,11 @@ public:
 	void Update( float dt, const RECT& w, const GameMode& curMode_in );
 	void Draw( HDC hdc ) const;
 	void Debug( HDC hdc ) const;
+	void DestroyEntity();
+	void ScaleUpEntity();
 
 private:
+	static constexpr float scaleUpLimit = 200.0f;
 	std::vector<PhysicsEntity> field;
 	PatternMatchingListener typePairSwitch;
 	GameMode curMode = GameMode::Collision;

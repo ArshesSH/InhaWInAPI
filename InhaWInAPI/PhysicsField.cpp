@@ -31,12 +31,13 @@ PhysicsField::PhysicsField( )
 				}
 				else if ( curMode == GameMode::Combine )
 				{
-					convex.SetStateToDestroy();
-					circle.SetStateToScaleUP();
+					convex.SetStateShouldDestroy();
+					circle.SetStateShouldScaleUP();
+					circle.SetSizeForAdd( convex.GetSize() * 0.5 );
 				}
 				else
 				{
-					convex.SetStateToSplit();
+					convex.SetStateShouldSplit();
 					circle.SetStateToCollide();
 				}
 			}
@@ -58,12 +59,13 @@ PhysicsField::PhysicsField( )
 				}
 				else if ( curMode == GameMode::Combine )
 				{
-					circle.SetStateToDestroy();
-					convex.SetStateToScaleUP();
+					circle.SetStateShouldDestroy();
+					convex.SetStateShouldScaleUP();
+					convex.SetSizeForAdd( circle.GetSize() );
 				}
 				else
 				{
-					circle.SetStateToSplit();
+					circle.SetStateShouldSplit();
 					convex.SetStateToCollide();
 				}
 			}
@@ -93,12 +95,13 @@ PhysicsField::PhysicsField( )
 				}
 				else if ( curMode == GameMode::Combine )
 				{
-					convex2.SetStateToDestroy();
-					convex1.SetStateToScaleUP();
+					convex2.SetStateShouldDestroy();
+					convex1.SetStateShouldScaleUP();
+					convex1.SetSizeForAdd( convex2.GetSize() );
 				}
 				else
 				{
-					convex2.SetStateToSplit();
+					convex2.SetStateShouldSplit();
 					convex1.SetStateToCollide();
 				}
 			}
@@ -160,6 +163,8 @@ void PhysicsField::Update( float dt, const RECT& w, const GameMode& curMode_in )
 		}
 	}
 
+	ScaleUpEntity();
+	DestroyEntity();
 
 	// For Debug
 	if ( curMode == GameMode::Collision )
@@ -191,4 +196,36 @@ void PhysicsField::Debug( HDC hdc ) const
 	std::wstring fieldCount = std::to_wstring( field.size() );
 	TextOut( hdc, 100, 60, fieldCount.c_str(), (int)fieldCount.size() );
 	TextOut( hdc, 100, 80, modeOutput.c_str(), (int)modeOutput.size() );
+}
+
+void PhysicsField::DestroyEntity()
+{
+	const auto new_end = std::remove_if( field.begin(), field.end(),
+		[]( const PhysicsEntity& entity )
+		{
+			return entity.GetStateShouldDestroy();
+		}
+	);
+	field.erase( new_end, field.end() );
+}
+
+void PhysicsField::ScaleUpEntity()
+{
+	auto i = std::find_if( field.begin(), field.end(),
+		[&]( PhysicsEntity& entity )
+		{
+			bool flag = false;
+			if ( entity.GetStateShouldScaleUp() )
+			{
+				flag = true;
+				entity.AddSize( entity.GetSizeForAdd() );
+				entity.SetStateToNormal();
+				if ( entity.GetSize() >= scaleUpLimit )
+				{
+					entity.SetStateShouldDestroy();
+				}
+			}
+			return flag;
+		}
+	);	
 }
