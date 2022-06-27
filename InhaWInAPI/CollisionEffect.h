@@ -38,7 +38,6 @@ namespace CollisionEffect
 		inline static bool CheckCircleOverlap( const PhysicsEntity& e1, const PhysicsEntity& e2 );
 		inline static void CenterCorrection( PhysicsEntity& entity, const Vec2<float>& correctionVec );
 		inline static void SwapVelocity( PhysicsEntity& e1, PhysicsEntity& e2 );
+		inline static void SetCollisionState( PhysicsEntity& e1, PhysicsEntity& e2 );
 	};
-
-
 }

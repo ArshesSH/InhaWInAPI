@@ -175,9 +175,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         
         mainGame.ComposeFrame( hdc );
 
-        std::wstring testDT = std::to_wstring( mainGame.GetDeltaTime() );
+        std::wstring testDT = L"Current Delta Time: " + std::to_wstring(mainGame.GetDeltaTime());
         TextOut( hdc, 100, 100, testDT.c_str(), (int)testDT.size() );
-
 
         EndPaint( hWnd, &ps );
         }
@@ -197,15 +196,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
         switch ( wParam )
         {
-        case 1:
+        case 49:
             mainGame.SetCollisionMode();
             break;
 
-        case 2:
+        case 50:
             mainGame.SetCombineMode();
             break;
 
-        case 3:
+        case 51:
             mainGame.SetSplitMode();
             break;
         }

@@ -14,8 +14,6 @@ void CollisionEffect::CollideType::CircleToCircle::operator()( PhysicsEntity& ci
 
 		CenterCorrection( circle1, distOverlapVec * -1.0f );
 		CenterCorrection( circle2, distOverlapVec );
-		//e1.SetCenter( e1.GetCenter() - distOverlapVec );
-		//e2.SetCenter( e2.GetCenter() + distOverlapVec );
 
 		SwapVelocity( circle1, circle2 );
 
@@ -143,6 +141,12 @@ inline void CollisionEffect::CollideType::SwapVelocity( PhysicsEntity& e1, Physi
 	e2.SetVelocity( tmpVel );
 }
 
+inline void CollisionEffect::CollideType::SetCollisionState( PhysicsEntity& e1, PhysicsEntity& e2 )
+{
+	e1.SetState( PhysicsEntity::State::Collided );
+	e2.SetState( PhysicsEntity::State::Collided );
+}
+
 void CollisionEffect::CollideType::ConvexToCircle::operator()( PhysicsEntity& convex, PhysicsEntity& circle )
 {
 	Vec2<float> minTranslateVec;
@@ -153,8 +157,7 @@ void CollisionEffect::CollideType::ConvexToCircle::operator()( PhysicsEntity& co
 
 		SwapVelocity( convex, circle );
 
-		convex.SetState( PhysicsEntity::State::Collided );
-		circle.SetState( PhysicsEntity::State::Collided );
+		SetCollisionState( convex, circle );
 	}
 }
 

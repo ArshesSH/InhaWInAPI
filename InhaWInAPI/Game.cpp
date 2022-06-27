@@ -50,3 +50,8 @@ void Game::AddStar( const Vec2<int>& pos )
 {
 	field.AddStar( pos );
 }
+
+void Game::AddRandomGeometricObject( const Vec2<int>& pos )
+{
+	field.AddRandomly( pos );
+}

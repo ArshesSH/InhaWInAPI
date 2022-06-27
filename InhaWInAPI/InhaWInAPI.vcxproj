@@ -158,6 +158,7 @@
     <ClInclude Include="Vec2W.h" />
     <ClInclude Include="Vec3.h" />
     <ClInclude Include="GameMode.h" />
+    <ClInclude Include="CollisionManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CollisionEffect.cpp" />

@@ -8,6 +8,7 @@
 class Game
 {
 public:
+	Game() {};
 	void ComposeFrame(const HDC& hdc);
 	void UpdateModel();
 
@@ -19,9 +20,10 @@ public:
 	void AddCircle( const Vec2<int>& pos );
 	void AddRect( const Vec2<int>& pos );
 	void AddStar( const Vec2<int>& pos );
+	void AddRandomGeometricObject( const Vec2<int>& pos );
 private:
-	FrameTimer ft;
 	GameMode gameMode = GameMode::Collision;
+	FrameTimer ft;
 	PhysicsField field;
 	HDC hdc = nullptr;
 	RECT screenRect;
