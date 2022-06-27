@@ -1,7 +1,20 @@
 #include "PhysicsField.h"
 
+#include "CollisionEffect.h"
 #include "framework.h"
 #include "GameMode.h"
+#include "PhysicsEntityTypeTraits.h"
+
+PhysicsField::PhysicsField()
+{
+	auto tmp = [](PhysicsEntity& a, PhysicsEntity& b) {};
+	typePairSwitch.Case<TypeCircle, TypeCircle>( tmp );
+	typePairSwitch.Case<TypeRect, TypeCircle>( tmp );
+	typePairSwitch.Case<TypeStar, TypeCircle>( tmp );
+	typePairSwitch.Case<TypeRect, TypeRect>( tmp );
+	typePairSwitch.Case<TypeRect, TypeStar>( tmp );
+	typePairSwitch.Case<TypeStar, TypeStar>( tmp );
+}
 void PhysicsField::AddCircle( const Vec2<int>& pos )
 {
 	const int id = (int)field.size();
@@ -28,7 +41,7 @@ void PhysicsField::Update( float dt, const RECT& w, const GameMode& curMode )
 
 		for ( auto& other : field )
 		{
-			e.DoEntityCollisionWith( other, curMode );
+			e.DoEntityCollisionWith( other, curMode, typePairSwitch );
 		}
 	}
 

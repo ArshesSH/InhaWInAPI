@@ -32,8 +32,8 @@ public:
 	template<typename T, typename U, typename F>
 	void Case( F f )
 	{
-		static_assert(std::is_base_of<PhysicsEntity::EntityType, T>::value, "Template param type T must be derived from PhysicsEntity::EntityType!");
-		static_assert(std::is_base_of<PhysicsEntity::EntityType, U>::value, "Template param type U must be derived from PhysicsEntity::EntityType!");
+		static_assert(std::is_base_of<PhysicsEntity::TypeTrait, T>::value, "Template param type T must be derived from PhysicsEntity::TypeTrait!");
+		static_assert(std::is_base_of<PhysicsEntity::TypeTrait, U>::value, "Template param type U must be derived from PhysicsEntity::TypeTrait!");
 		handlers[{typeid(T), typeid(U)}] = f;
 		handlers[{typeid(U), typeid(T)}] = std::bind(
 			f, std::placeholders::_2, std::placeholders::_1
@@ -42,15 +42,15 @@ public:
 	template<typename T, typename U>
 	bool HasCase() const
 	{
-		static_assert(std::is_base_of<PhysicsEntity::EntityType, T>::value, "Template param type T must be derived from PhysicsEntity::EntityType!");
-		static_assert(std::is_base_of<PhysicsEntity::EntityType, U>::value, "Template param type U must be derived from PhysicsEntity::EntityType!");
+		static_assert(std::is_base_of<PhysicsEntity::TypeTrait, T>::value, "Template param type T must be derived from PhysicsEntity::TypeTrait!");
+		static_assert(std::is_base_of<PhysicsEntity::TypeTrait, U>::value, "Template param type U must be derived from PhysicsEntity::TypeTrait!");
 		return handlers.count( { typeid(T),typeid(U) } ) > 0;
 	}
 	template<typename T, typename U>
 	void ClearCase()
 	{
-		static_assert(std::is_base_of<PhysicsEntity::EntityType, T>::value, "Template param type T must be derived from PhysicsEntity::EntityType!");
-		static_assert(std::is_base_of<PhysicsEntity::EntityType, U>::value, "Template param type U must be derived from PhysicsEntity::EntityType!");
+		static_assert(std::is_base_of<PhysicsEntity::TypeTrait, T>::value, "Template param type T must be derived from PhysicsEntity::TypeTrait!");
+		static_assert(std::is_base_of<PhysicsEntity::TypeTrait, U>::value, "Template param type U must be derived from PhysicsEntity::TypeTrait!");
 		handlers.erase( { typeid(T),typeid(U) } );
 		handlers.erase( { typeid(U),typeid(T) } );
 	}

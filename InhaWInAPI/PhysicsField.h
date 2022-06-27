@@ -1,13 +1,13 @@
 #pragma once
 
 #include <vector>
+#include "PatternMatchingListener.h"
 #include "PhysicsEntity.h"
 
 class PhysicsField
 {
-
 public:
-	PhysicsField() = default;
+	PhysicsField();
 	
 	void AddCircle( const Vec2<int>& pos );
 	void AddRect( const Vec2<int>& pos );
@@ -17,4 +17,5 @@ public:
 
 private:
 	std::vector<PhysicsEntity> field;
+	PatternMatchingListener typePairSwitch;
 };

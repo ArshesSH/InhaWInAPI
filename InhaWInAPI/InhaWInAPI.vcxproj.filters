@@ -63,7 +63,7 @@
     <ClInclude Include="CollisionEffect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="PhysicsEntityTypes.h">
+    <ClInclude Include="PhysicsEntityTypeTraits.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Game.h">

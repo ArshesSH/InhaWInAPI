@@ -7,6 +7,9 @@ class Vec2W
 {
 public:
 	Vec2W()
+		:
+		x( T( 0 ) ),
+		y( T( 0 ) )
 	{}
 	Vec2W( T x, T y )
 		:

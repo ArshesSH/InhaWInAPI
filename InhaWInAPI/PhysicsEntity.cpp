@@ -1,6 +1,6 @@
 #include "PhysicsEntity.h"
 
-#include "PhysicsEntityTypes.h"
+#include "PhysicsEntityTypeTraits.h"
 #include "PatternMatchingListener.h"
 #include "CollisionEffect.h"
 
@@ -10,11 +10,11 @@ PhysicsEntity::PhysicsEntity( Type type, const Vec2<int>& pos, int id )
 {
 	std::random_device rd;
 	std::mt19937 rng( rd() );
-	std::uniform_int_distribution<int> sizeGen( 50, 50 );
+	std::uniform_int_distribution<int> sizeGen( 20, 50 );
 	std::uniform_real_distribution<float> speedGen( 100, 300 );
 	std::uniform_real_distribution<float> dirXGen( -1, 1 );
 	std::uniform_real_distribution<float> dirYGen( -1, 1 );
-	std::uniform_real_distribution<float> rotateGen( -0, 0.5 );
+	std::uniform_real_distribution<float> rotateGen( -2, 2 );
 
 	speed = speedGen( rng );
 	vel = { dirXGen( rng ), dirYGen( rng ) };
@@ -39,6 +39,16 @@ PhysicsEntity::PhysicsEntity( Type type, const Vec2<int>& pos, int id )
 		pObj = std::make_unique<Star<float>>( posStar, sizeGen( rng ), flareGen( rng ) );
 		pType = std::make_unique<TypeStar>();
 	}
+}
+
+bool PhysicsEntity::operator==( const PhysicsEntity& rhs ) const
+{
+	return id == rhs.id;
+}
+
+bool PhysicsEntity::operator!=( const PhysicsEntity& rhs ) const
+{
+	return  id != rhs.id;
 }
 
 void PhysicsEntity::Update( float dt, const RECT& walls )
@@ -75,89 +85,96 @@ void PhysicsEntity::Draw( HDC hdc ) const
 	}
 }
 
-void PhysicsEntity::DoEntityCollisionWith( PhysicsEntity& other, const GameMode& curMode )
+ Vec2<float> PhysicsEntity::GetCenter() const
+{
+	return pObj->GetCenter();
+}
+
+ float PhysicsEntity::GetSize() const
+{
+	return pObj->GetSize();
+}
+
+ float PhysicsEntity::GetOuterRadius() const
+{
+	return pObj->GetRadius();
+}
+
+ float PhysicsEntity::GetAngle() const
+{
+	return angle;
+}
+
+ float PhysicsEntity::GetScale() const
+{
+	return scale;
+}
+
+const PhysicsEntity::TypeTrait& PhysicsEntity::GetEntityType() const
+{
+	return *pType;
+}
+
+Vec2<float> PhysicsEntity::GetVelocity() const
+{
+	return vel;
+}
+
+std::vector<Vec2<float>> PhysicsEntity::GetVertices() const
+{
+	return pObj->GetVertices();
+}
+
+bool PhysicsEntity::WasCollided() const
+{
+	return objState == State::Collided;
+}
+
+void PhysicsEntity::SetCenter( const Vec2<float>& c )
+{
+	pObj->SetCenter( c );
+}
+
+ void PhysicsEntity::SetAngle( float angle_in )
+{
+	angle = MathSH::WrapAngle( angle_in );
+}
+
+ void PhysicsEntity::SetScale( float scale_in )
+{
+	scale = scale_in;
+}
+
+ void PhysicsEntity::SetVelocity( const Vec2<float>& v )
+{
+	vel = v;
+}
+
+ void PhysicsEntity::SetState( const State& s )
+{
+	objState = s;
+}
+
+void PhysicsEntity::DoEntityCollisionWith( PhysicsEntity& other, const GameMode& curMode, PatternMatchingListener& listener )
 {
 	//if ( !WasCollided() && !other.WasCollided() )
 	{
-		if ( id != other.id )
+		if ( *this != other )
 		{
 			Vec2<float> correctionVec;
 
-			static PatternMatchingListener typePairSwitch;
-
-
 			if ( curMode == GameMode::Collision )
 			{
-				typePairSwitch.Case<TypeCircle, TypeCircle>( CollisionEffect::CollideType::CircleToCircle() );
-				typePairSwitch.Case<TypeRect, TypeCircle>( CollisionEffect::CollideType::ConvexToCircle() );
-				typePairSwitch.Case<TypeStar, TypeCircle>( CollisionEffect::CollideType::ConvexToCircle() );
-				typePairSwitch.Case<TypeRect, TypeRect>( CollisionEffect::CollideType::ConvexToConvex() );
-				typePairSwitch.Case<TypeRect, TypeStar>( CollisionEffect::CollideType::ConvexToConvex() );
-				typePairSwitch.Case<TypeStar, TypeStar>( CollisionEffect::CollideType::ConvexToConvex() );
-				typePairSwitch.Switch( *this, other );
+				listener.Switch( *this, other );
+
+
 			}
-
-			//if ( objType == Type::Circle )
-			//{
-			//	/*
-			//	if ( other.objType == Type::Circle )
-			//	{
-			//		if ( CheckCircleOverlap( *this, other ) )
-			//		{
-			//			// Displace this and other
-			//			const Vec2<float> distVec = GetCenter() - other.GetCenter();
-			//			const float distance = distVec.GetLength();
-			//			const float ovelapDist = (distance - GetSize() - other.GetSize()) * 0.5f;
-			//			const Vec2<float> distOverlapVec = distVec.GetNormalized() * ovelapDist;
-			//			SetCenter( GetCenter() - distOverlapVec );
-			//			other.SetCenter( other.GetCenter() + distOverlapVec );
-
-			//			std::swap( vel, other.vel );
-
-			//			objState = State::Collided;
-			//			other.objState = State::Collided;
-			//		}
-			//	}
-			//	*/
-			//	 if ( other.objType == Type::Rect )
-			//	{
-			//		if ( CheckConvexOverlapWithCircle( other, *this ) )
-			//		{
-			//			objState = State::Collided;
-			//			other.objState = State::Collided;
-			//		}
-			//	}
-			//}
-			//else
-			//{
-			//	if ( other.objType == Type::Circle )
-			//	{
-			//		if ( CheckConvexOverlapWithCircle( *this, other ) )
-			//		{
-			//			objState = State::Collided;
-			//			other.objState = State::Collided;
-			//		}
-			//	}
-			//	else
-			//	{
-			//		if ( CheckConvexOverlapWithConvex( *this, other ) )
-			//		{
-			//			objState = State::Collided;
-			//			other.objState = State::Collided;
-			//		}
-			//	}
-			//}
 		}
 	}
 
 }
 
-bool PhysicsEntity::CheckCircleOverlap( const PhysicsEntity& e1, const PhysicsEntity& e2 ) const
+inline void PhysicsEntity::ApplyTransformation( const Mat3<float>& transformation_in )
 {
-	Circle<float> c1( e1.GetCenter(), e1.GetOuterRadius() );
-	Circle<float> c2( e2.GetCenter(), e2.GetOuterRadius() );
-
-	const Vec2<float> distance = c1.GetCenter() - c2.GetCenter();
-	const float sumOfRadius = c1.GetRadius() + c2.GetRadius();
-	return fabs( distance.x * distance.x + distance.y * distance.y ) < sumOfRadius * sumOfRadius;
+	transform = transformation_in * transform;
 }

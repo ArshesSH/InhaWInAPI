@@ -3,10 +3,10 @@
 #include "PhysicsEntity.h"
 #include <memory>
 
-class TypeCircle : public PhysicsEntity::EntityType
+class TypeCircle : public PhysicsEntity::TypeTrait
 {
 public:
-	std::unique_ptr<EntityType> Clone() const override
+	std::unique_ptr<TypeTrait> Clone() const override
 	{
 		return std::make_unique<TypeCircle>();
 	}
@@ -16,10 +16,10 @@ public:
 	}
 };
 
-class TypeRect : public PhysicsEntity::EntityType
+class TypeRect : public PhysicsEntity::TypeTrait
 {
 public:
-	std::unique_ptr<EntityType> Clone() const override
+	std::unique_ptr<TypeTrait> Clone() const override
 	{
 		return std::make_unique<TypeRect>();
 	}
@@ -28,10 +28,10 @@ public:
 		return PhysicsEntity::Type::Rect;
 	}
 };
-class TypeStar : public PhysicsEntity::EntityType
+class TypeStar : public PhysicsEntity::TypeTrait
 {
 public:
-	std::unique_ptr<EntityType> Clone() const override
+	std::unique_ptr<TypeTrait> Clone() const override
 	{
 		return std::make_unique<TypeStar>();
 	}

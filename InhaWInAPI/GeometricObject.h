@@ -315,7 +315,7 @@ public:
 	}
 	double GetArea() const override
 	{
-		return radius * radius * MathSH::PI;
+		return ((double)radius * (double)radius) * MathSH::PI;
 	}
 	double GetPerimeter() const override
 	{
@@ -494,7 +494,7 @@ public:
 	}
 	double GetArea() const override
 	{
-		return width * height;
+		return double(width * height);
 	}
 	double GetPerimeter() const override
 	{
