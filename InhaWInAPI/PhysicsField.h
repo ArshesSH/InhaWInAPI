@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include "PhysicsEntity.h"
+#include <string>
 
 class PhysicsField
 {
@@ -47,6 +48,8 @@ public:
 		{
 			e.Draw( hdc );
 		}
+		std::wstring fieldCount = std::to_wstring( field.size() );
+		TextOut( hdc, 100, 80, fieldCount.c_str(), (int)fieldCount.size() );
 	}
 
 private:
