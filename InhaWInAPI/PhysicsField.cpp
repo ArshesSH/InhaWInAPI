@@ -35,16 +35,15 @@ void PhysicsField::AddStar( const Vec2<int>& pos )
 
 void PhysicsField::Update( float dt, const RECT& w, const GameMode& curMode )
 {
-	for ( auto& e : field )
+	for ( auto it = field.begin(); it != field.end(); ++it )
 	{
-		e.Update( dt, w );
+		it->Update(dt, w);
 
-		for ( auto& other : field )
+		for ( auto itOther = it; itOther != field.end(); ++itOther )
 		{
-			e.DoEntityCollisionWith( other, curMode, typePairSwitch );
+			it->DoEntityCollisionWith( *itOther, curMode, typePairSwitch );
 		}
 	}
-
 }
 
 void PhysicsField::Draw( HDC hdc ) const

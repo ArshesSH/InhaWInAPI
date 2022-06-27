@@ -173,10 +173,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         HDC hdc = BeginPaint( hWnd, &ps );
         // TODO: Add any drawing code that uses hdc here...
         
+        mainGame.ComposeFrame( hdc );
+
         std::wstring testDT = std::to_wstring( mainGame.GetDeltaTime() );
         TextOut( hdc, 100, 100, testDT.c_str(), (int)testDT.size() );
-        
-        mainGame.ComposeFrame( hdc );
+
 
         EndPaint( hWnd, &ps );
         }

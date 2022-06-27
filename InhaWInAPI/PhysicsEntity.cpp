@@ -63,7 +63,7 @@ void PhysicsEntity::Update( float dt, const RECT& walls )
 
 		if ( objState == State::Collided )
 		{
-			if ( collideTime >= 0.03f )
+			if ( collideTime >= dt )
 			{
 				objState = State::Normal;
 				collideTime = 0.0f;
@@ -166,8 +166,6 @@ void PhysicsEntity::DoEntityCollisionWith( PhysicsEntity& other, const GameMode&
 			if ( curMode == GameMode::Collision )
 			{
 				listener.Switch( *this, other );
-
-
 			}
 		}
 	}
