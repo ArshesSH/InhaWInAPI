@@ -139,7 +139,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Action.h" />
     <ClInclude Include="CollisionEffect.h" />
     <ClInclude Include="FrameTimer.h" />
     <ClInclude Include="framework.h" />

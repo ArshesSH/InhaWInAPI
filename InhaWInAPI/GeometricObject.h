@@ -41,6 +41,7 @@ public:
 	virtual void Draw( HDC hdc ) const = 0;
 	virtual void DrawTransformed( HDC hdc, const Mat3<T>& transform_in ) const { return; }
 	virtual void DrawDebug( HDC hdc ) const = 0;
+	virtual int GetFlareCount() const { return 0; };
 	double GetDistanceWith( const GeometricObject<T>& other ) const
 	{
 		const Vec2<T> vDist = other.center - center;
@@ -433,6 +434,10 @@ public:
 		outerRadius += size_in;
 		innerRadius = ((T)((outerRadius * cos( dTheta * 2 )) / (cos( dTheta ))));
 		SetVertices();
+	}
+	int GetFlareCount() const override
+	{
+		return nFlares;
 	}
 
 	void Draw( HDC hdc ) const override

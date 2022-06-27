@@ -18,10 +18,13 @@ public:
 	void Draw( HDC hdc ) const;
 	void Debug( HDC hdc ) const;
 	void DestroyEntity();
+	void CheckSizeToDestroy();
 	void ScaleUpEntity();
+	void SplitEntity();
 
 private:
 	static constexpr float scaleUpLimit = 200.0f;
+	static constexpr float scaleDownLimit = 5.0f;
 	std::vector<PhysicsEntity> field;
 	PatternMatchingListener typePairSwitch;
 	GameMode curMode = GameMode::Collision;

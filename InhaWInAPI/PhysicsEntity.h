@@ -7,7 +7,6 @@
 #include "MathSH.h"
 #include "GameMode.h"
 
-
 class PhysicsEntity
 {
 public:
@@ -38,6 +37,7 @@ public:
 
 public:
 	PhysicsEntity( Type type, const Vec2<int>& pos, int id );
+	PhysicsEntity( Type type, const Vec2<int>& pos, int id, int size_in, const Vec2<float>& vel, float angle_in, float spinFreq, int nFlares );
 
 	bool operator==( const PhysicsEntity& rhs ) const;
 	bool operator!=( const PhysicsEntity& rhs ) const;
@@ -61,6 +61,8 @@ public:
 	bool GetStateShouldDestroy() const;
 	bool WasCollided() const;
 	float GetSizeForAdd() const;
+	int GetFlareCount() const;
+	float GetSpinFreq() const;
 
 	void AddSize( float size );
 	void SetSizeForAdd( float size );
@@ -93,16 +95,21 @@ private:
 	bool CheckConvexOverlapWithborder( const Vec2<float>& topLeft, const Vec2<float>& bottomRight );
 
 private:
+	static constexpr int minSize = 30;
+	static constexpr int maxSize = 50;
+	static constexpr float minSpeed = 100;
+	static constexpr float maxSpeed = 400;
+	static constexpr int roatateAmount = 2;
+
 	std::unique_ptr<GeometricObject<float>> pObj;
 	std::unique_ptr<TypeTrait> pType;
-	int id;
 	Vec2<float> vel;
 	Mat3<float> transform = Mat3<float>::Identity();
-	float speed;
+	State objState = State::Normal;
 	float sizeForAdd = 0.0f;
 	float angle = 0.0f;
 	float spinFreq = 0.0f;
 	float time = 0.0f;
 	float collideTime = 0.0f;
-	State objState = State::Normal;
+	int id;
 };

@@ -10,15 +10,13 @@ PhysicsEntity::PhysicsEntity( Type type, const Vec2<int>& pos, int id )
 {
 	std::random_device rd;
 	std::mt19937 rng( rd() );
-	std::uniform_int_distribution<int> sizeGen( 30, 50 );
-	std::uniform_real_distribution<float> speedGen( 100, 300 );
+	std::uniform_int_distribution<int> sizeGen( minSize, maxSize );
+	std::uniform_real_distribution<float> speedGen( minSpeed, maxSpeed );
 	std::uniform_real_distribution<float> dirXGen( -1, 1 );
 	std::uniform_real_distribution<float> dirYGen( -1, 1 );
-	std::uniform_real_distribution<float> rotateGen( 0, 1 );
+	std::uniform_real_distribution<float> rotateGen( -roatateAmount, roatateAmount );
 
-	speed = speedGen( rng );
-	vel = { dirXGen( rng ), dirYGen( rng ) };
-	vel *= speed;
+	vel = Vec2<float>{ dirXGen( rng ), dirYGen( rng ) } * speedGen( rng );
 	spinFreq = (float)(rotateGen( rng ) * MathSH::PI);
 
 	if ( type == Type::Rect )
@@ -37,6 +35,33 @@ PhysicsEntity::PhysicsEntity( Type type, const Vec2<int>& pos, int id )
 		std::uniform_int_distribution<int> flareGen( 5, 9 );
 		const Vec2<float> posStar{ (float)pos.x, (float)pos.y };
 		pObj = std::make_unique<Star<float>>( posStar, sizeGen( rng ), flareGen( rng ) );
+		pType = std::make_unique<TypeStar>();
+	}
+}
+
+PhysicsEntity::PhysicsEntity( Type type, const Vec2<int>& pos, int id, int size_in, const Vec2<float>& vel, float angle_in, float spinFreq, int nFlares )
+	:
+	id( id ),
+	vel( vel ),
+	spinFreq( spinFreq )
+{
+	if ( type == Type::Rect )
+	{
+		pObj = std::make_unique<Rect<float>>( (float)pos.x, (float)pos.y, size_in, size_in );
+		SetAngle( angle_in );
+		pType = std::make_unique<TypeRect>();
+	}
+	else if ( type == Type::Circle )
+	{
+		pObj = std::make_unique<Circle<float>>( (float)pos.x, (float)pos.y, size_in );
+		SetAngle( angle_in );
+		pType = std::make_unique<TypeCircle>();
+	}
+	else if ( type == Type::Star )
+	{
+		const Vec2<float> posStar{ (float)pos.x, (float)pos.y };
+		pObj = std::make_unique<Star<float>>( posStar, size_in, nFlares );
+		SetAngle( angle_in );
 		pType = std::make_unique<TypeStar>();
 	}
 }
@@ -165,6 +190,16 @@ bool PhysicsEntity::WasCollided() const
 float PhysicsEntity::GetSizeForAdd() const
 {
 	return sizeForAdd;
+}
+
+int PhysicsEntity::GetFlareCount() const
+{
+	return pObj->GetFlareCount();
+}
+
+float PhysicsEntity::GetSpinFreq() const
+{
+	return spinFreq;
 }
 
 void PhysicsEntity::AddSize( float size )
