@@ -32,7 +32,7 @@ PhysicsField::PhysicsField( )
 				{
 					convex.SetStateShouldDestroy();
 					circle.SetStateShouldScaleUP();
-					circle.SetSizeForAdd( convex.GetSize() * 0.5 );
+					circle.SetSizeForAdd( convex.GetSize());
 				}
 				else
 				{
@@ -160,7 +160,11 @@ void PhysicsField::Update( float dt, const RECT& w, const GameMode& curMode_in )
 
 		for ( auto itOther = it; itOther != field.end(); ++itOther )
 		{
-			it->DoEntityCollisionWith( *itOther, typePairSwitch );
+			if ( it != itOther )
+			{
+				Vec2<float> correctionVec;
+				typePairSwitch.Switch( *it, *itOther );
+			}
 		}
 	}
 
@@ -231,13 +235,6 @@ void PhysicsField::CheckSizeToDestroy()
 
 void PhysicsField::ScaleUpEntity()
 {
-	Vec2<int> pos;
-	Vec2<float> vel;
-	PhysicsEntity::Type type;
-	int size;
-	float angle;
-	float spinFreq;
-	int nFlares;
 	auto i = std::find_if( field.begin(), field.end(),
 		[&]( PhysicsEntity& entity )
 		{
@@ -246,24 +243,12 @@ void PhysicsField::ScaleUpEntity()
 			{
 				flag = true;
 				
-				type = entity.GetType();
-				pos = { (int)entity.GetCenterX(), (int)entity.GetCenterY() };
-				vel = entity.GetVelocity();
-				size = entity.GetSize() + entity.GetSizeForAdd();
-				angle = entity.GetAngle();
-				spinFreq = entity.GetSpinFreq();
-				nFlares = entity.GetFlareCount();
-
+				entity.AddSize( entity.GetSizeForAdd() );
 				entity.SetStateToNormal();
 			}
 			return flag;
 		}
 	);
-	if ( i != field.end() )
-	{
-		field.erase( i );
-		field.emplace_back( type, pos, field.size(), (float)size, vel, angle, spinFreq, nFlares );
-	}
 }
 
 void PhysicsField::SplitEntity()

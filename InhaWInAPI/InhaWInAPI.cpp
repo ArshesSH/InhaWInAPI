@@ -217,7 +217,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     {
-        mainGame.AddCircle( {LOWORD(lParam), HIWORD( lParam ) } );
+        //mainGame.AddCircle( {LOWORD(lParam), HIWORD( lParam ) } );
+        mainGame.AddRandomGeometricObject( { LOWORD( lParam ), HIWORD( lParam ) } );
+
         InvalidateRect( hWnd, nullptr, true );
     }
     break;

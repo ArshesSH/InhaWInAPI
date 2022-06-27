@@ -24,7 +24,7 @@ public:
 
 private:
 	static constexpr float scaleUpLimit = 200.0f;
-	static constexpr float scaleDownLimit = 5.0f;
+	static constexpr float scaleDownLimit = 10.0f;
 	std::vector<PhysicsEntity> field;
 	PatternMatchingListener typePairSwitch;
 	GameMode curMode = GameMode::Collision;
