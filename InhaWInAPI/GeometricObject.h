@@ -32,14 +32,11 @@ public:
 	}
 	virtual ~GeometricObject() {}
 
-	virtual double GetArea() const { return 0; }
-	virtual double GetPerimeter() const { return 0; }
-	virtual T GetRadius() const { return 0; }
+	virtual T GetRadius() const = 0;
 	virtual RECT GetRECT() const { return { 0,0,0,0 }; }
 	virtual T GetSize() const = 0;
 	virtual void AddSize( T size_in ) = 0;
 	virtual void Draw( HDC hdc ) const = 0;
-	virtual void DrawTransformed( HDC hdc, const Mat3<T>& transform_in ) const { return; }
 	virtual void DrawDebug( HDC hdc ) const = 0;
 	virtual int GetFlareCount() const { return 0; };
 	double GetDistanceWith( const GeometricObject<T>& other ) const
@@ -139,14 +136,6 @@ public:
 	}
 	~Circle() {}
 	
-	double GetArea() const override
-	{
-		return ((double)radius * (double)radius) * MathSH::PI;
-	}
-	double GetPerimeter() const override
-	{
-		return radius * MathSH::PI * 2;
-	}
 	void SetCenter( const Vec2<T>& p ) override
 	{
 		GeometricObject<T>::center = p;
@@ -189,10 +178,6 @@ public:
 		const int bottom = (int)(GeometricObject<T>::center.y + radius);
 
 		Ellipse( hdc, left, top, right, bottom );
-	}
-	void DrawTransformed( HDC hdc, const Mat3<T>& transform_in ) const override
-	{
-		Draw( hdc );
 	}
 	void DrawDebug( HDC hdc ) const override
 	{
@@ -244,8 +229,6 @@ public:
 		width( (T)1 ),
 		height( (T)1 )
 	{
-		const T halfWidth = (T)0.5 * width;
-		outerRadius = (T)std::sqrt( halfWidth * halfWidth + halfWidth * halfWidth );
 		GeometricObject<T>::vertices.resize( 4 );
 		SetVertices();
 	}
@@ -255,8 +238,6 @@ public:
 		width( width ),
 		height( height )
 	{
-		const T halfWidth = (T)0.5 * width;
-		outerRadius = (T)std::sqrt( halfWidth * halfWidth + halfWidth * halfWidth );
 		GeometricObject<T>::vertices.resize( 4 );
 		SetVertices();
 	}
@@ -266,8 +247,6 @@ public:
 		width( width ),
 		height( height )
 	{
-		const T halfWidth = (T)0.5 * width;
-		outerRadius = (T)std::sqrt( halfWidth * halfWidth + halfWidth * halfWidth );
 		GeometricObject<T>::vertices.resize( 4 );
 		SetVertices();
 	}
@@ -277,26 +256,16 @@ public:
 		width( bottomRight.x - topLeft.x ),
 		height( bottomRight.y - topLeft.y )
 	{
-		const T halfWidth = (T)0.5 * width;
-		outerRadius = (T)std::sqrt( halfWidth * halfWidth + halfWidth * halfWidth );
 		GeometricObject<T>::vertices.resize( 4 );
 		SetVertices();
 	}
 
 	~Rect() {}
 
-
-	double GetArea() const override
-	{
-		return double(width * height);
-	}
-	double GetPerimeter() const override
-	{
-		return width * 2 + height * 2;
-	}
 	T GetRadius() const override
 	{
-		return outerRadius;
+		const float halfWidth = width * 0.5f;
+		return (T)std::sqrt( halfWidth * halfWidth + halfWidth * halfWidth );
 	}
 	T GetWidth() const
 	{
@@ -334,6 +303,7 @@ public:
 	{
 		width += size_in;
 		height += size_in;
+		const float halfWidth = size_in * 0.5f;
 		SetVertices();
 	}
 	void Draw( HDC hdc ) const override
@@ -389,7 +359,6 @@ private:
 	T right;
 	T top;
 	T bottom;
-	T outerRadius;
 };
 
 template<typename T>
@@ -419,6 +388,10 @@ public:
 		SetVertices();
 	}
 
+	void GetRaidus() const
+	{
+		return outerRadius;
+	}
 	void SetCenter( const Vec2<T>& center_in ) override
 	{
 		GeometricObject<T>::center = center_in;

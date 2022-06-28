@@ -204,15 +204,11 @@ public:
 					minTranslateNormalVec = axisProj;
 				}
 			}
-
 			minTransVec = minTranslateNormalVec * (minTranslateScalar * 0.5f);
-
 			return true;
 		}
 		return false;
 	}
-
-	
 
 private:
 
