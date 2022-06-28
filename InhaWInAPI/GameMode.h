@@ -6,4 +6,3 @@ enum class GameMode
 	Combine,
 	Split
 };
-

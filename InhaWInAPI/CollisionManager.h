@@ -209,7 +209,5 @@ public:
 		}
 		return false;
 	}
-
 private:
-
 };

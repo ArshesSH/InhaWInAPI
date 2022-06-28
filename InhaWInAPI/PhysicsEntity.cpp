@@ -137,7 +137,6 @@ void PhysicsEntity::Draw( HDC hdc ) const
 	return angle;
 }
 
-
  PhysicsEntity::Type PhysicsEntity::GetType() const
  {
 	 return pType->GetType();
@@ -178,9 +177,6 @@ bool PhysicsEntity::GetStateShouldDestroy() const
 	return objState == State::ShouldDestroy;
 }
 
-
-
-
 bool PhysicsEntity::WasCollided() const
 {
 	return objState == State::Collided;
@@ -200,6 +196,7 @@ float PhysicsEntity::GetSpinFreq() const
 {
 	return spinFreq;
 }
+
 
 void PhysicsEntity::AddSize( float size )
 {

@@ -21,6 +21,7 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
+VOID CALLBACK TimerProc( HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime );
 
 
 static FrameTimer ft;
@@ -142,7 +143,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:
         GetClientRect( hWnd, &screenRect );
         mainGame.SetClientRECT( screenRect );
-        SetTimer( hWnd, 1, 0, nullptr );
+        SetTimer( hWnd, 1, 0, NULL );
         break;
     case WM_TIMER:
     {
@@ -183,13 +184,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
        break;
     case WM_SIZE:
     {
-        // 윈도우 창 변경 시
         GetClientRect( hWnd, &screenRect );
         mainGame.SetClientRECT( screenRect );
-    }
-    break;
-    case WM_KEYDOWN:
-    {
     }
     break;
     case WM_CHAR:
@@ -210,41 +206,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
     }
     break;
-    case WM_KEYUP:
-    {
-    }
-    break;
 
     case WM_LBUTTONDOWN:
     {
-        //mainGame.AddCircle( {LOWORD(lParam), HIWORD( lParam ) } );
         mainGame.AddRandomGeometricObject( { LOWORD( lParam ), HIWORD( lParam ) } );
-
         InvalidateRect( hWnd, nullptr, true );
-    }
-    break;
-
-    case WM_LBUTTONUP:
-    {
-    }
-    break;
-
-    case WM_MBUTTONDOWN:
-    {
-        mainGame.AddStar( { LOWORD( lParam ), HIWORD( lParam ) } );
-        InvalidateRect( hWnd, nullptr, true );
-    }
-    break;
-
-    case WM_RBUTTONDOWN:
-    {
-        mainGame.AddRect( { LOWORD( lParam ), HIWORD( lParam ) } );
-        InvalidateRect( hWnd, nullptr, true );
-    }
-    break;
-
-    case WM_MOUSEMOVE:
-    {
     }
     break;
 
@@ -275,4 +241,9 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
+}
+
+VOID CALLBACK TimerProc( HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime )
+{
+    InvalidateRect( hWnd, nullptr, true );
 }

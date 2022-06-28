@@ -6,8 +6,6 @@
 #include <type_traits>
 #include "PhysicsEntity.h"
 
-
-
 // Create TypePair
 using TypePair = std::pair<const std::type_index, const std::type_index>;
 
