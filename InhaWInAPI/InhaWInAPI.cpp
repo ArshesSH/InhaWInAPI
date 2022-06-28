@@ -9,7 +9,7 @@
 #include "Question.h"
 #include "GeometricObject.h"
 #include "FrameTimer.h"
-
+#include <commdlg.h>
 
 #define MAX_LOADSTRING 100
 
@@ -24,8 +24,6 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 
-
-static TCHAR str[256];
 static int count, yPos;
 static SIZE size;
 static FrameTimer ft;
@@ -159,6 +157,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static POINT curPos;
     static bool bDrag = false;
     static int selectedMenu;
+    static char filepath[100], filename[100];
 
     switch (message)
     {
@@ -202,11 +201,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
+            case ID_FILE_OPEN:
+            {
+                TCHAR str[100], lpstrFile[100] = _T( "" );
+                TCHAR filter[] = _T( "Every File(*.*) \0*.*\0Text File\0*.t\0;*.doc\0" );
+                OPENFILENAME ofn;
+                memset( &ofn, 0, sizeof( OPENFILENAME ) );
+                ofn.lStructSize = sizeof( OPENFILENAME );
+                ofn.hwndOwner = hWnd;
+                ofn.lpstrFilter = filter;
+                ofn.lpstrFile = lpstrFile;
+                ofn.nMaxFile = 100;
+                ofn.lpstrInitialDir = _T( "." );
+                if ( GetOpenFileName( &ofn ) )
+                {
+                    _stprintf_s( str, _T( "%s 파일을 열겠습니까?" ), ofn.lpstrFile );
+                    MessageBox( hWnd, str, _T( "열기 선택" ), MB_OK );
+                }
+
+            }
+            break;
+
             case ID_DrawCircle:
             {
              
                 int popupID = MessageBox( hWnd, L"선택한 메뉴로 실행하시겠습니까?.", L"메뉴 선택 확인", MB_OKCANCEL );
-                if ( popupID == 1 )
+                if ( popupID == IDOK )
                 {
                     selectedMenu = ID_DrawCircle;
                     InvalidateRect( hWnd, nullptr, true );
@@ -217,7 +237,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case ID_DrawRect:
             {
                 int popupID = MessageBox( hWnd, L"선택한 메뉴로 실행하시겠습니까?.", L"메뉴 선택 확인", MB_OKCANCEL );
-                if ( popupID == 1 )
+                if ( popupID == IDOK )
                 {
                     selectedMenu = ID_DrawRect;
                     InvalidateRect( hWnd, nullptr, true );
