@@ -38,6 +38,7 @@ void DrawCircle( HDC hdc, POINT center, int radius );
 //void DrawRect_Test( HDC hdc );
 void DrawRect( HDC hdc, POINT center, int width, int height );
 void DrawPolygonTest( HDC hdc );
+void OutFromFile( TCHAR filename[], const HWND& hwnd );
 
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
@@ -211,17 +212,37 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 ofn.hwndOwner = hWnd;
                 ofn.lpstrFilter = filter;
                 ofn.lpstrFile = lpstrFile;
-                ofn.nMaxFile = 100;
+                ofn.nMaxFile = 256;
                 ofn.lpstrInitialDir = _T( "." );
-                if ( GetOpenFileName( &ofn ) )
+                if ( GetOpenFileName( &ofn ) != 0 )
                 {
-                    _stprintf_s( str, _T( "%s 파일을 열겠습니까?" ), ofn.lpstrFile );
-                    MessageBox( hWnd, str, _T( "열기 선택" ), MB_OK );
-                }
+                    //_stprintf_s( str, _T( "%s 파일을 열겠습니까?" ), ofn.lpstrFile );
+                    //MessageBox( hWnd, str, _T( "열기 선택" ), MB_OK );
+                    OutFromFile( ofn.lpstrFile, hWnd );
 
+                }
             }
             break;
-
+            case ID_FILE_SAVE:
+            {
+                TCHAR str[100], lpstrFile[100] = _T( "" );
+                TCHAR filter[] = _T( "Every File(*.*) \0*.*\0Text File\0*.t\0" );
+                OPENFILENAME ofn;
+                memset( &ofn, 0, sizeof( OPENFILENAME ) );
+                ofn.lStructSize = sizeof( OPENFILENAME );
+                ofn.hwndOwner = hWnd;
+                ofn.lpstrFilter = filter;
+                ofn.lpstrFile = lpstrFile;
+                ofn.nMaxFile = 256;
+                ofn.lpstrInitialDir = _T( "." );
+                if ( GetSaveFileName( &ofn ) != 0 )
+                {
+                    //_stprintf_s( str, _T( "%s 파일을 열겠습니까?" ), ofn.lpstrFile );
+                    //MessageBox( hWnd, str, _T( "열기 선택" ), MB_OK );
+                    OutFromFile( ofn.lpstrFile, hWnd );
+                }
+            }
+            break;
             case ID_DrawCircle:
             {
              
@@ -429,7 +450,7 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 void TextOutTest( HDC hdc )
 {
     TextOut( hdc, 100, 100, _T( "Hello World!" ), _tcslen( _T( "Hello World!" ) ) );
-
+    TCHAR str[100];
     GetTextExtentPoint( hdc, str, _tcslen( str ), &size );
     SetCaretPos( 400 + size.cx, yPos );
     TextOut( hdc, 400, yPos, str, _tcslen( str ) );
@@ -452,6 +473,7 @@ void TextOutTest( HDC hdc )
 
 void RemoveText( HWND hWnd, HDC hdc, WPARAM wParam )
 {
+    TCHAR str[100];
     if ( wParam == VK_BACK && count > 0 )
     {
         str[--count] = NULL;
@@ -527,4 +549,31 @@ void DrawRect_Test( HDC hdc )
 void DrawCircle_Test( HDC hdc )
 {
     Ellipse( hdc, 300, 300, 400, 400 );
+}
+
+void OutFromFile( TCHAR filename[], const HWND& hwnd )
+{
+    FILE* pF;
+    HDC hdc;
+    int line = 0;
+    std::wstring buf;
+    TCHAR buffer[500];
+    hdc = GetDC( hwnd );
+#ifdef _UNICODE
+    _tfopen_s( &pF, filename, _T( "r, ccs = UNICODE" ) );
+#else
+    _tfopen_s( &pF, filename, _T( "r" ) );
+#endif // _UNICODE
+    while ( _fgetts( buffer, 100, pF ) != NULL )
+    {
+        const auto bufferSize = _tcslen( buffer ) - 1;
+        if ( buffer[bufferSize] == _T( '\n' ) )
+        {
+            buffer[bufferSize] = NULL;
+            TextOut( hdc, 0, line * 20, buffer, _tcslen( buffer ) );
+            line++;
+        }
+        fclose( pF );
+        ReleaseDC( hwnd, hdc );
+    }
 }
