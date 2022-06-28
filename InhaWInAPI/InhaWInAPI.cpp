@@ -158,6 +158,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static POINT startPos;
     static POINT curPos;
     static bool bDrag = false;
+    static int selectedMenu;
 
     switch (message)
     {
@@ -201,6 +202,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
+            case ID_DrawCircle:
+            {
+             
+                int popupID = MessageBox( hWnd, L"선택한 메뉴로 실행하시겠습니까?.", L"메뉴 선택 확인", MB_OKCANCEL );
+                if ( popupID == 1 )
+                {
+                    selectedMenu = ID_DrawCircle;
+                    InvalidateRect( hWnd, nullptr, true );
+                }
+            }
+
+                break;
+            case ID_DrawRect:
+            {
+                int popupID = MessageBox( hWnd, L"선택한 메뉴로 실행하시겠습니까?.", L"메뉴 선택 확인", MB_OKCANCEL );
+                if ( popupID == 1 )
+                {
+                    selectedMenu = ID_DrawRect;
+                    InvalidateRect( hWnd, nullptr, true );
+                }
+                break;
+            }
+
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
             }
@@ -216,6 +240,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             DrawLine( hdc, startPos, curPos );
         }
 
+        switch ( selectedMenu )
+        {
+        case ID_DrawCircle:
+            DrawCircle( hdc, { 200,200 }, 100 );
+            break;
+        case ID_DrawRect:
+            DrawRect( hdc, { 200,200 }, 100 ,100);
+            break;
+        }
 
         //q7.P93Q7_CreateRect(hdc);
 
