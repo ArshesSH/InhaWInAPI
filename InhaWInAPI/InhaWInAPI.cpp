@@ -49,10 +49,15 @@ int runFrameMax = 0;
 int runFrameMin = 0;
 int curFrame = runFrameMax;
 
+// Double buffering
+HBITMAP hDoubleBufferImage;
+
+
 
 void CreateBitmap();
 void UpdateFrame(HWND hWnd);
 void DrawBitmap( HWND hwnd, HDC hdc );
+void DrawBitmapDoubleBuffering( HWND hWnd, HDC hdc );
 void DeleteBitmap();
 
 // Finish BItmap
@@ -197,7 +202,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         // Create Bitmap
         CreateBitmap();
-        SetTimer( hWnd, 1, 50, TimerProc );
+        SetTimer( hWnd, 1, 0, TimerProc );
         /*
         // Create Timer
         SetTimer( hWnd, 1, 100, nullptr );
@@ -250,7 +255,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint( hWnd, &ps );
 
-        DrawBitmap(hWnd, hdc );
+        //DrawBitmap(hWnd, hdc );
+        DrawBitmapDoubleBuffering( hWnd, hdc );
         DrawRectText( hdc );
 
         EndPaint( hWnd, &ps );
@@ -406,6 +412,79 @@ void DrawBitmap( HWND hwnd, HDC hdc )
 
     TransparentBlt( hdc, 200, 400, bx*2, by*2, hMemDC, xStart, yStart, bx, by, RGB( 255, 0, 255 ) );
 
+    SelectObject( hMemDC, hOldBitmap );
+    DeleteDC( hMemDC );
+}
+
+void DrawBitmapDoubleBuffering( HWND hWnd, HDC hdc )
+{
+    HDC hMemDC;
+    HBITMAP hOldBitmap;
+
+    HDC hMemDC2;
+    HBITMAP hOldBitmap2;
+
+    int bx, by;
+
+
+    hMemDC = CreateCompatibleDC( hdc );
+
+    if ( hDoubleBufferImage == NULL )
+    {
+        // Create Bitmap Image for Double buffering
+        hDoubleBufferImage = CreateCompatibleBitmap( hdc, rcClient.right, rcClient.bottom );
+    }
+
+
+
+    hOldBitmap = (HBITMAP)SelectObject( hMemDC, hDoubleBufferImage );
+
+    // Background Image
+    {
+        hMemDC2 = CreateCompatibleDC( hMemDC );
+        hOldBitmap2 = (HBITMAP)SelectObject( hMemDC2, hBackImage );
+        bx = bitBack.bmWidth;
+        by = bitBack.bmHeight;
+
+        BitBlt( hMemDC, 0, 0, bx, by, hMemDC2, 0, 0, SRCCOPY );
+        //StretchBlt( hMemDC, 900, 0, bx * 2, by * 2, hMemDC2, 200, 200, bx, by, SRCCOPY );
+
+
+        SelectObject( hMemDC2, hOldBitmap2 );
+        DeleteDC( hMemDC2 );
+    }
+
+    // sigong
+    {
+        hMemDC2 = CreateCompatibleDC( hMemDC );
+        hOldBitmap2 = (HBITMAP)SelectObject( hMemDC2, hSigongImage );
+        bx = bitSigong.bmWidth;
+        by = bitSigong.bmHeight;
+        TransparentBlt( hMemDC, 200, 200, bx, by, hMemDC2, 0, 0, bx, by, RGB( 255, 0, 255 ) );
+
+        SelectObject( hMemDC2, hOldBitmap2 );
+        DeleteDC( hMemDC2 );
+    }
+
+    // Zero
+    {
+
+        hMemDC2 = CreateCompatibleDC( hMemDC );
+        hOldBitmap2 = (HBITMAP)SelectObject( hMemDC2, hZero );
+        bx = zeroSpriteSizeX;
+        by = zeroSpriteSizeY;
+
+        int xStart = curFrame * bx;
+        int yStart = 0;
+
+        TransparentBlt( hMemDC, 200, 400, bx * 2, by * 2, hMemDC2, xStart, yStart, bx, by, RGB( 255, 0, 255 ) );
+
+        SelectObject( hMemDC2, hOldBitmap2 );
+        DeleteDC( hMemDC2 );
+    }
+
+    // MEmDC2 => memdc
+    BitBlt( hdc, 0, 0, rcClient.right, rcClient.bottom, hMemDC, 0, 0, SRCCOPY );
     SelectObject( hMemDC, hOldBitmap );
     DeleteDC( hMemDC );
 }
