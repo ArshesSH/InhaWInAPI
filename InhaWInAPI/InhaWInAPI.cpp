@@ -11,6 +11,8 @@
 #include "FrameTimer.h"
 #include <commdlg.h>
 
+#pragma comment(lib, "msimg32.lib")
+
 #define MAX_LOADSTRING 100
 
 // Global Variables:
@@ -23,11 +25,39 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+VOID    CALLBACK    TimerProc( HWND, UINT, UINT, DWORD );
+
 
 static int count, yPos;
 static SIZE size;
 static FrameTimer ft;
 
+// for Bitmap
+// background img
+HBITMAP hBackImage;
+BITMAP bitBack;
+
+HBITMAP hSigongImage;
+BITMAP bitSigong;
+
+// Animation
+HBITMAP hZero;
+BITMAP bitZero;
+static constexpr int zeroSpriteSizeX = 57;
+static constexpr int zeroSpriteSizeY = 52;
+int runFrameMax = 0;
+int runFrameMin = 0;
+int curFrame = runFrameMax;
+
+
+void CreateBitmap();
+void UpdateFrame(HWND hWnd);
+void DrawBitmap( HWND hwnd, HDC hdc );
+void DeleteBitmap();
+
+// Finish BItmap
+
+void DrawRectText( HDC hdc );
 void TextOutTest( HDC hdc );
 void RemoveText( HWND hWnd, HDC hdc, WPARAM wParam );
 //void DrawLine_Test( HDC hdc );
@@ -146,12 +176,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 //
 
-
+static RECT rcClient;
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     //static Question q7;
-    static RECT rcClient;
+
     static Circle<int> c1( { 30, 30 }, 20 );
     static Circle<int> c2( { 100,100 }, 30 );
     static POINT startPos;
@@ -165,11 +195,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_CREATE:
         GetClientRect( hWnd, &rcClient );
 
+        // Create Bitmap
+        CreateBitmap();
+        SetTimer( hWnd, 1, 50, TimerProc );
         /*
         // Create Timer
         SetTimer( hWnd, 1, 100, nullptr );
         SetTimer( hWnd, 2, 200, nullptr );
         */
+
+
         break;
     case WM_TIMER:
     {
@@ -188,6 +223,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             InvalidateRect( hWnd, nullptr, true );
         }
         */
+
     }
     break;
     case WM_COMMAND:
@@ -202,69 +238,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
-            case ID_FILE_OPEN:
-            {
-                TCHAR str[100], lpstrFile[100] = _T( "" );
-                TCHAR filter[] = _T( "Every File(*.*) \0*.*\0Text File\0*.t\0;*.doc\0" );
-                OPENFILENAME ofn;
-                memset( &ofn, 0, sizeof( OPENFILENAME ) );
-                ofn.lStructSize = sizeof( OPENFILENAME );
-                ofn.hwndOwner = hWnd;
-                ofn.lpstrFilter = filter;
-                ofn.lpstrFile = lpstrFile;
-                ofn.nMaxFile = 256;
-                ofn.lpstrInitialDir = _T( "." );
-                if ( GetOpenFileName( &ofn ) != 0 )
-                {
-                    //_stprintf_s( str, _T( "%s 파일을 열겠습니까?" ), ofn.lpstrFile );
-                    //MessageBox( hWnd, str, _T( "열기 선택" ), MB_OK );
-                    OutFromFile( ofn.lpstrFile, hWnd );
-
-                }
-            }
-            break;
-            case ID_FILE_SAVE:
-            {
-                TCHAR str[100], lpstrFile[100] = _T( "" );
-                TCHAR filter[] = _T( "Every File(*.*) \0*.*\0Text File\0*.t\0" );
-                OPENFILENAME ofn;
-                memset( &ofn, 0, sizeof( OPENFILENAME ) );
-                ofn.lStructSize = sizeof( OPENFILENAME );
-                ofn.hwndOwner = hWnd;
-                ofn.lpstrFilter = filter;
-                ofn.lpstrFile = lpstrFile;
-                ofn.nMaxFile = 256;
-                ofn.lpstrInitialDir = _T( "." );
-                if ( GetSaveFileName( &ofn ) != 0 )
-                {
-                    //_stprintf_s( str, _T( "%s 파일을 열겠습니까?" ), ofn.lpstrFile );
-                    //MessageBox( hWnd, str, _T( "열기 선택" ), MB_OK );
-                    OutFromFile( ofn.lpstrFile, hWnd );
-                }
-            }
-            break;
-            case ID_DrawCircle:
-            {
-             
-                int popupID = MessageBox( hWnd, L"선택한 메뉴로 실행하시겠습니까?.", L"메뉴 선택 확인", MB_OKCANCEL );
-                if ( popupID == IDOK )
-                {
-                    selectedMenu = ID_DrawCircle;
-                    InvalidateRect( hWnd, nullptr, true );
-                }
-            }
-
-                break;
-            case ID_DrawRect:
-            {
-                int popupID = MessageBox( hWnd, L"선택한 메뉴로 실행하시겠습니까?.", L"메뉴 선택 확인", MB_OKCANCEL );
-                if ( popupID == IDOK )
-                {
-                    selectedMenu = ID_DrawRect;
-                    InvalidateRect( hWnd, nullptr, true );
-                }
-                break;
-            }
+            
 
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
@@ -276,76 +250,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         PAINTSTRUCT ps;
         HDC hdc = BeginPaint( hWnd, &ps );
 
-        if ( bDrag )
-        {
-            DrawLine( hdc, startPos, curPos );
-        }
-
-        switch ( selectedMenu )
-        {
-        case ID_DrawCircle:
-            DrawCircle( hdc, { 200,200 }, 100 );
-            break;
-        case ID_DrawRect:
-            DrawRect( hdc, { 200,200 }, 100 ,100);
-            break;
-        }
-
-        //q7.P93Q7_CreateRect(hdc);
-
-        // TODO: Add any drawing code that uses hdc here...
-        /*
-
-        DrawGrid( hdc, { 100, 100 }, { 300,300 }, 35, 35 );
-        {
-
-            HPEN hPen, oldPen;
-            hPen = CreatePen( PS_DOT, 1, RGB( 255, 0, 0 ) );
-            oldPen = (HPEN)SelectObject( hdc, hPen );
-            DrawCircle( hdc, { 200, 200 }, 100 );
-            SelectObject( hdc, oldPen );
-            DeleteObject( hPen );
-        }
-
-        {
-            HBRUSH hBrush, oldBrush;
-            hBrush = CreateSolidBrush( RGB( 0, 255, 0 ) );
-            oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
-            DrawRect( hdc, { 400,400 }, 50, 60 );
-            SelectObject( hdc, oldBrush );
-            DeleteObject( hBrush );
-        }
-
-        {
-            HBRUSH hBrush, oldBrush;
-            hBrush = (HBRUSH)GetStockObject( NULL_BRUSH );
-            oldBrush = (HBRUSH)SelectObject( hdc, hBrush );
-            DrawPolygonTest( hdc );
-            SelectObject( hdc, oldBrush );
-            DeleteObject( hBrush );
-        }
-
-        Question::DrawSunFlower( hdc, { 600, 600 }, 200, 8 );
-        //Question::DrawStar( hdc, { 300, 300 }, 100, 9 );
-
-        Star<int> s1( { 300,300 }, 100, 5 );
-        s1.Draw(hdc);
-
-        /* Using Pen
-        HPEN hPen, oldPen;
-        hPen = CreatePen( PS_DOT, 1, RGB( 255, 0, 0 ) );
-        oldPen = (HPEN)SelectObject( hdc, hPen );
-        DrawPolygonTest( hdc );
-        SelectObject( hdc, oldPen );
-        DeleteObject( hPen );
-        */
-
-        /*
-        *         // 화면 크기 얻기
-        RECT rc;
-        GetClientRect( hWnd, &rc );
-        */
-
+        DrawBitmap(hWnd, hdc );
+        DrawRectText( hdc );
 
         EndPaint( hWnd, &ps );
         }
@@ -358,7 +264,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
     case WM_KEYDOWN:
     {
-        InvalidateRect( hWnd, nullptr, true );
     }
     break;
     case WM_CHAR:
@@ -372,54 +277,32 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     {
-        bDrag = true;
-        //const Vec2<int> mousePos{ LOWORD( lParam ), HIWORD( lParam ) };
-        //if ( c1.IsContains( mousePos ) )
-        //{
-        //    c1.SetSelected();
-        //    
-        //    InvalidateRect( hWnd, nullptr, true );
-        //}
     }
     break;
 
     case WM_LBUTTONUP:
     {
-        bDrag = false;  
-        InvalidateRect( hWnd, nullptr, true );
-        //c1.SetSelected( false );
     }
     break;
 
     case WM_MOUSEMOVE:
     {
-        if ( bDrag )
-        {
-            HDC hdc = GetDC( hWnd );
-            SetROP2( hdc, R2_XORPEN );
-            HPEN oldPen = (HPEN)SelectObject( hdc, (HPEN)GetStockObject( WHITE_PEN ) );
-            DrawLine( hdc, startPos, curPos );
-
-            curPos.x = LOWORD( lParam );
-            curPos.y = HIWORD( lParam );
-            DrawLine( hdc, startPos, curPos );
-
-            ReleaseDC( hWnd, hdc );
-        }
-
-        //if ( c1.GetSelected() )
-        //{
-        //    c1.SetCenter( { LOWORD( lParam ) ,HIWORD( lParam ) } );
-        //    InvalidateRect( hWnd, nullptr, true );
-        //}
     }
     break;
 
     case WM_DESTROY:
-        PostQuitMessage(0);
+
+        // Destroy Bitmap
+        DeleteBitmap();
+
+
 
         //Destroy Timer
         KillTimer( hWnd, 1 );
+        
+        
+        PostQuitMessage( 0 );
+
         break;
     default:
         return DefWindowProc(hWnd, message, wParam, lParam);
@@ -445,6 +328,105 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
+}
+
+VOID CALLBACK TimerProc( HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime )
+{
+    UpdateFrame( hWnd );
+    InvalidateRect( hWnd, nullptr, false );
+}
+
+
+
+
+void CreateBitmap()
+{
+    hBackImage = (HBITMAP)LoadImage( NULL, L"Images/수지.bmp" , IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION );
+    GetObject( hBackImage, sizeof( BITMAP ), &bitBack );
+
+    // for Trans blt
+    hSigongImage = (HBITMAP)LoadImage( NULL, L"Images/sigong.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION );
+    GetObject( hSigongImage, sizeof( BITMAP ), &bitSigong );
+
+    // for animation
+    hZero = (HBITMAP)LoadImage( NULL, L"Images/zero_run.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE | LR_CREATEDIBSECTION );
+    GetObject( hZero, sizeof( BITMAP ), &bitZero );
+    runFrameMax = bitZero.bmWidth / zeroSpriteSizeX - 1;
+    runFrameMin = 2;
+    curFrame = runFrameMin; 
+
+}
+
+void UpdateFrame( HWND hWnd )
+{
+    curFrame++;
+    if ( curFrame > runFrameMax )
+    {
+        curFrame = runFrameMin;
+    }
+
+}
+
+void DrawBitmap( HWND hwnd, HDC hdc )
+{
+    HDC hMemDC;
+    HBITMAP hOldBitmap;
+    int bx, by;
+
+    hMemDC = CreateCompatibleDC( hdc );
+    hOldBitmap = (HBITMAP)SelectObject( hMemDC, hBackImage );
+    bx = bitBack.bmWidth;
+    by = bitBack.bmHeight;
+
+    BitBlt( hdc, 0, 0, bx, by, hMemDC, 0, 0, SRCCOPY );
+    //StretchBlt( hdc, 200, 200, bx * 2, by * 2, hMemDC, 0, 0, bx, by, SRCCOPY );
+
+    SelectObject( hMemDC, hOldBitmap );
+    DeleteDC( hMemDC );
+
+
+    // sigong
+    hMemDC = CreateCompatibleDC( hdc );
+    hOldBitmap = (HBITMAP)SelectObject( hMemDC, hSigongImage );
+    bx = bitSigong.bmWidth;
+    by = bitSigong.bmHeight;
+    TransparentBlt( hdc, 200, 200, bx, by, hMemDC, 0, 0, bx, by, RGB( 255, 0, 255 ) );
+
+    SelectObject( hMemDC, hOldBitmap );
+    DeleteDC( hMemDC );
+
+    // Zero
+    hMemDC = CreateCompatibleDC( hdc );
+    hOldBitmap = (HBITMAP)SelectObject( hMemDC, hZero );
+    bx = zeroSpriteSizeX;
+    by = zeroSpriteSizeY;
+
+    int xStart = curFrame * bx;
+    int yStart = 0;
+
+    TransparentBlt( hdc, 200, 400, bx*2, by*2, hMemDC, xStart, yStart, bx, by, RGB( 255, 0, 255 ) );
+
+    SelectObject( hMemDC, hOldBitmap );
+    DeleteDC( hMemDC );
+}
+
+void DeleteBitmap()
+{
+    DeleteObject( hBackImage );
+    DeleteObject( hSigongImage );
+    DeleteObject( hZero );
+}
+
+void DrawRectText( HDC hdc )
+{
+    static int yPos = 0;
+    std::wstring str = L"이미지 출력";
+    TextOut( hdc, 10, yPos, str.c_str(), str.size() );
+    yPos += 5;
+    if ( yPos > rcClient.bottom )
+    {
+        yPos = 0;
+    }
 }
 
 void TextOutTest( HDC hdc )
