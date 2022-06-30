@@ -419,17 +419,49 @@ BOOL CALLBACK DialogProc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
     switch ( iMsg )
     {
     case WM_INITDIALOG:
+    {
+        HWND hBtn = GetDlgItem( hDlg, IDC_PAUSE );
+        EnableWindow( hBtn, FALSE );
+    }
         return TRUE;
 
     case WM_COMMAND:
         switch ( LOWORD( wParam ) )
         {
+        case IDC_START:
+        {
+            HWND hBtn = GetDlgItem( hDlg, IDC_START );
+            EnableWindow( hBtn, FALSE );
+            hBtn = GetDlgItem( hDlg, IDC_PAUSE );
+            EnableWindow( hBtn, TRUE );
+
+            SetDlgItemText( hDlg, IDC_TEXT, _T( "시작" ) );
+        }
+            break;
+        case IDC_PAUSE:
+        {
+            HWND hBtn = GetDlgItem( hDlg, IDC_START );
+            EnableWindow( hBtn, TRUE );
+            hBtn = GetDlgItem( hDlg, IDC_PAUSE );
+            EnableWindow( hBtn, FALSE );
+            SetDlgItemText( hDlg, IDC_TEXT, _T( "정지" ) );
+        }
+            break;
+        case IDC_CLOSE:
+        {
+            EndDialog( hDlg, LOWORD( wParam ) );
+
+
+
+            return TRUE;
+        }
+            break;
         case IDC_BUTTON_PRINT:
         {
             HDC hdc = GetDC( hDlg );
 
             TextOut( hdc, 10, 10, _T( "Hello Button!" ), 13 );
-
+            SetDlgItemText( hDlg, IDC_TEXT, _T( "정말 의미있는 정보" ) );
             ReleaseDC( hDlg, hdc );
         }
 
