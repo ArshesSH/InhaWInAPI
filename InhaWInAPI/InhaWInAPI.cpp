@@ -422,12 +422,28 @@ BOOL CALLBACK DialogProc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
         return TRUE;
 
     case WM_COMMAND:
-        if ( LOWORD( wParam ) == IDOK || LOWORD( wParam ) == IDCANCEL )
+        switch ( LOWORD( wParam ) )
+        {
+        case IDC_BUTTON_PRINT:
+        {
+            HDC hdc = GetDC( hDlg );
+
+            TextOut( hdc, 10, 10, _T( "Hello Button!" ), 13 );
+
+            ReleaseDC( hDlg, hdc );
+        }
+
+        break;
+        case IDOK:
+        case IDCANCEL:
         {
             EndDialog( hDlg, LOWORD( wParam ) );
             return TRUE;
         }
         break;
+
+        break;
+        }
     }
     return FALSE;
 }
