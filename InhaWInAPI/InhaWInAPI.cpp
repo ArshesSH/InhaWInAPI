@@ -27,6 +27,11 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 VOID    CALLBACK    TimerProc( HWND, UINT, UINT, DWORD );
 
+// Created Key State Proc 2022.06.30
+VOID    CALLBACK    KeyStateProc( HWND, UINT, UINT, DWORD );
+TCHAR sKeyState[128];
+
+
 
 static int count, yPos;
 static SIZE size;
@@ -202,7 +207,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         // Create Bitmap
         CreateBitmap();
-        SetTimer( hWnd, 1, 0, TimerProc );
+        SetTimer( hWnd, 1, 200, KeyStateProc );
+        SetTimer( hWnd, 2, 100, TimerProc );
         /*
         // Create Timer
         SetTimer( hWnd, 1, 100, nullptr );
@@ -305,6 +311,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         //Destroy Timer
         KillTimer( hWnd, 1 );
+        KillTimer( hWnd, 2 );
         
         
         PostQuitMessage( 0 );
@@ -340,6 +347,24 @@ VOID CALLBACK TimerProc( HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime )
 {
     UpdateFrame( hWnd );
     InvalidateRect( hWnd, nullptr, false );
+}
+
+// Key capture
+VOID CALLBACK KeyStateProc( HWND, UINT, UINT, DWORD )
+{
+    // 0x8000 = key down
+    if ( GetKeyState( 'A' ) & 0x8000 )
+    {
+        wsprintf( sKeyState, TEXT( "%s" ), _T( "A-Key pressed" ) );
+    }
+    else if ( GetKeyState( 'D' ) & 0x8000)
+    {
+        wsprintf( sKeyState, TEXT( "%s" ), _T( "D-Key pressed" ) );
+    }
+    else
+    {
+        wsprintf( sKeyState, TEXT( "" ) );
+    }
 }
 
 
@@ -506,6 +531,8 @@ void DrawRectText( HDC hdc )
     {
         yPos = 0;
     }
+
+    TextOut( hdc, 50, 10, sKeyState, _tcslen( sKeyState ) );
 }
 
 void TextOutTest( HDC hdc )
