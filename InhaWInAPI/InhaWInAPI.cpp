@@ -26,6 +26,7 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 VOID    CALLBACK    TimerProc( HWND, UINT, UINT, DWORD );
+BOOL    CALLBACK    DialogProc( HWND, UINT, WPARAM, LPARAM );
 
 // Created Key State Proc 2022.06.30
 //VOID    CALLBACK    KeyStateProc( HWND, UINT, UINT, DWORD );
@@ -318,6 +319,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
     break;
 
+    case WM_RBUTTONDOWN:
+    {
+        DialogBox( hInst, MAKEINTRESOURCE( IDD_DIALOG1 ), hWnd, DialogProc);
+    }
+    break;
+
     case WM_LBUTTONUP:
     {
     }
@@ -404,6 +411,25 @@ VOID CALLBACK TimerProc( HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime )
 {
     UpdateFrame( hWnd );
     InvalidateRect( hWnd, nullptr, false );
+}
+
+BOOL CALLBACK DialogProc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
+{
+    UNREFERENCED_PARAMETER( lParam );
+    switch ( iMsg )
+    {
+    case WM_INITDIALOG:
+        return TRUE;
+
+    case WM_COMMAND:
+        if ( LOWORD( wParam ) == IDOK || LOWORD( wParam ) == IDCANCEL )
+        {
+            EndDialog( hDlg, LOWORD( wParam ) );
+            return TRUE;
+        }
+        break;
+    }
+    return FALSE;
 }
 
 // Key capture
