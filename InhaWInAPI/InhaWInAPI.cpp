@@ -413,6 +413,7 @@ VOID CALLBACK TimerProc( HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime )
     InvalidateRect( hWnd, nullptr, false );
 }
 
+
 BOOL CALLBACK DialogProc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
 {
     UNREFERENCED_PARAMETER( lParam );
@@ -428,6 +429,19 @@ BOOL CALLBACK DialogProc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
     case WM_COMMAND:
         switch ( LOWORD( wParam ) )
         {
+        case IDC_BUTTON_COPY:
+        {
+            TCHAR word[128];
+            GetDlgItemText( hDlg, IDC_EDIT_SRC, word, 256 );
+            SetDlgItemText( hDlg, IDC_EDIT_COPY, word );
+        }
+            break;
+        case IDC_BUTTON_CLEAR:
+        {
+            SetDlgItemText( hDlg, IDC_EDIT_SRC, _T(""));
+            SetDlgItemText( hDlg, IDC_EDIT_COPY, _T( "" ));
+        }
+            break;
         case IDC_START:
         {
             HWND hBtn = GetDlgItem( hDlg, IDC_START );
@@ -450,9 +464,6 @@ BOOL CALLBACK DialogProc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
         case IDC_CLOSE:
         {
             EndDialog( hDlg, LOWORD( wParam ) );
-
-
-
             return TRUE;
         }
             break;
@@ -582,7 +593,6 @@ void DrawBitmapDoubleBuffering( HWND hWnd, HDC hdc )
 
     int bx, by;
 
-
     hMemDC = CreateCompatibleDC( hdc );
 
     if ( hDoubleBufferImage == NULL )
@@ -590,8 +600,6 @@ void DrawBitmapDoubleBuffering( HWND hWnd, HDC hdc )
         // Create Bitmap Image for Double buffering
         hDoubleBufferImage = CreateCompatibleBitmap( hdc, rcClient.right, rcClient.bottom );
     }
-
-
 
     hOldBitmap = (HBITMAP)SelectObject( hMemDC, hDoubleBufferImage );
 
