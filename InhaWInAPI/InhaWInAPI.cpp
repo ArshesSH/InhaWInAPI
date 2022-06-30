@@ -28,9 +28,12 @@ INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 VOID    CALLBACK    TimerProc( HWND, UINT, UINT, DWORD );
 
 // Created Key State Proc 2022.06.30
-VOID    CALLBACK    KeyStateProc( HWND, UINT, UINT, DWORD );
+//VOID    CALLBACK    KeyStateProc( HWND, UINT, UINT, DWORD );
 TCHAR sKeyState[128];
 
+void Update();
+Vec2<float> zeroPos = { 200,400 };
+bool isLeft = false;
 
 
 static int count, yPos;
@@ -57,6 +60,7 @@ int curFrame = runFrameMax;
 // Double buffering
 HBITMAP hDoubleBufferImage;
 
+FrameTimer timer;
 
 
 void CreateBitmap();
@@ -106,15 +110,37 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
-    // Main message loop:
-    while (GetMessage(&msg, nullptr, 0, 0))
+    while ( true )
     {
-        if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+        if ( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) )
         {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
+            if ( msg.message == WM_QUIT )
+            {
+                break;
+            }
+            else
+            {
+                TranslateMessage( &msg );
+                DispatchMessage( &msg );
+            }
+        }
+        else
+        {
+            Update();
         }
     }
+
+
+
+    //// Main message loop:
+    //while (GetMessage(&msg, nullptr, 0, 0))
+    //{
+    //    if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+    //    {
+    //        TranslateMessage(&msg);
+    //        DispatchMessage(&msg);
+    //    }
+    //}
 
     return (int) msg.wParam;
 }
@@ -207,8 +233,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
         // Create Bitmap
         CreateBitmap();
-        SetTimer( hWnd, 1, 200, KeyStateProc );
-        SetTimer( hWnd, 2, 100, TimerProc );
+        //SetTimer( hWnd, 1, 200, KeyStateProc );
+        SetTimer( hWnd, 2, 50, TimerProc );
         /*
         // Create Timer
         SetTimer( hWnd, 1, 100, nullptr );
@@ -310,7 +336,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
         //Destroy Timer
-        KillTimer( hWnd, 1 );
+        //KillTimer( hWnd, 1 );
         KillTimer( hWnd, 2 );
         
         
@@ -341,6 +367,37 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
+}
+
+void Update()
+{
+    DWORD newTime = GetTickCount64();
+    static DWORD oldTime = newTime;
+    if ( newTime - oldTime < 100 )
+    {
+        return;
+    }
+    oldTime = newTime;
+
+    if ( GetAsyncKeyState( VK_RIGHT ) & 0x8000 )
+    {
+        isLeft = false;
+        zeroPos.x += 20;
+    }
+    if ( GetAsyncKeyState( VK_LEFT ) & 0x8000 )
+    {
+        isLeft = true;
+        zeroPos.x -= 20;
+    }
+    if ( GetAsyncKeyState( VK_DOWN ) & 0x8000 )
+    {
+        zeroPos.y += 20;
+    }
+    if ( GetAsyncKeyState( VK_UP ) & 0x8000 )
+    {
+        zeroPos.y -= 20;
+    }
+
 }
 
 VOID CALLBACK TimerProc( HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime )
@@ -502,7 +559,17 @@ void DrawBitmapDoubleBuffering( HWND hWnd, HDC hdc )
         int xStart = curFrame * bx;
         int yStart = 0;
 
-        TransparentBlt( hMemDC, 200, 400, bx * 2, by * 2, hMemDC2, xStart, yStart, bx, by, RGB( 255, 0, 255 ) );
+        if ( !isLeft )
+        {
+            TransparentBlt( hMemDC, zeroPos.x, zeroPos.y, bx * 2, by * 2, hMemDC2, xStart, yStart, bx, by, RGB( 255, 0, 255 ) );
+        }
+
+        if ( isLeft )
+        {
+            xStart = (runFrameMax * bx) - xStart;
+            yStart = by;
+            TransparentBlt( hMemDC, zeroPos.x, zeroPos.y, bx * 2, by * 2, hMemDC2, xStart, yStart, bx, by, RGB( 255, 0, 255 ) );
+        }
 
         SelectObject( hMemDC2, hOldBitmap2 );
         DeleteDC( hMemDC2 );
