@@ -11,7 +11,22 @@
 #include "FrameTimer.h"
 #include <commdlg.h>
 
+
+// >> : GDI+
+
+//#include <ObjIdl.h>
+
+#include <objidl.h>
+#include <gdiplus.h>
+#pragma comment(lib, "Gdiplus.lib")
+using namespace Gdiplus;
+
+
+
+// <<
+
 #pragma comment(lib, "msimg32.lib")
+
 
 #define MAX_LOADSTRING 100
 
@@ -19,6 +34,14 @@
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+
+// >> : GDI+
+ULONG_PTR g_GdiToken;
+void Gdi_Init();
+void Gdi_Draw( HDC hdc );
+void Gdi_End();
+// << : GDI+
+
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -111,6 +134,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
+
+    Gdi_Init();
     while ( true )
     {
         if ( PeekMessage( &msg, nullptr, 0, 0, PM_REMOVE ) )
@@ -130,7 +155,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             Update();
         }
     }
-
+    Gdi_End();
 
 
     //// Main message loop:
@@ -147,6 +172,138 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 }
 
 
+
+void Gdi_Init()
+{
+    GdiplusStartupInput gpsi;
+    GdiplusStartup( &g_GdiToken, &gpsi, nullptr );
+}
+
+void Gdi_Draw( HDC hdc )
+{
+    Graphics graphics( hdc );
+
+    // Txt
+    SolidBrush brush( Color( 255, 255, 0, 0 ) );
+    FontFamily fontFamily( L"Consolas" );
+    Font font( &fontFamily, 24, FontStyleRegular, UnitPixel );
+    PointF pointF( 10.0f, 20.0f );
+
+    graphics.DrawString( L"Hello World!", -1, &font, pointF, &brush );
+
+
+    // Line
+    Pen pen( Color( 100, 0, 255, 255 ), 6 );
+    graphics.DrawLine( &pen, 0, 0, 200, 200 );
+
+    // Image
+    Image image( L"Images/sigong.png" );
+    int w = image.GetWidth();
+    int h = image.GetHeight();
+    graphics.DrawImage( &image, 300, 100, w, h );
+
+    // animation
+    Image zeroImage( L"Images/zero_run.png" );
+    int wz = zeroImage.GetWidth() / 16;
+    int hz = zeroImage.GetHeight() / 2;
+    int xStart = curFrame * wz;
+    int yStart = 0;
+    // deledte chroma
+    ImageAttributes imgAttr;
+    imgAttr.SetColorKey( Color( 245, 0, 245 ), Color( 255, 10, 255 ) );
+    graphics.DrawImage( &zeroImage, Gdiplus::Rect( 400, 100, wz * 2, hz * 2 ), xStart, yStart, wz, hz, UnitPixel, &imgAttr );
+
+
+    // alpha rect
+    brush.SetColor( Color( 128, 255, 0, 0 ) );
+    graphics.FillRectangle( &brush, 600, 100, wz * 2, hz * 2 );
+
+
+    // Rotate Image
+    Image* pImg;
+    pImg = Image::FromFile( L"Images/sigong.png" );
+    POINT sigongPos = { 300, 200 };
+    if ( pImg != nullptr )
+    {
+        w = pImg->GetWidth();
+        h = pImg->GetHeight();
+
+        Gdiplus::Matrix mat;
+        static int rot = 0;
+
+        mat.RotateAt( (rot % 360),
+            Gdiplus::PointF( ((float)sigongPos.x + (float)w * 0.5f), (float)sigongPos.y + (float)(h * 0.5f) )
+        );
+        graphics.SetTransform( &mat );
+        graphics.DrawImage( pImg, sigongPos.x, sigongPos.y, w, h );
+        rot -= 50;
+
+        mat.Reset();
+        graphics.SetTransform( &mat );
+    }
+
+    // Alpha Image
+    if ( pImg )
+    {
+        REAL transparency = 0.5f;
+        ColorMatrix colorMatrix =
+        {
+            1.0f, 0.0f, 0.0f, 0.0f,         0.0f,
+            0.0f, 1.0f, 0.0f, 0.0f,         0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f,         0.0f,
+            0.0f, 0.0f, 0.0f, transparency, 0.0f,
+            0.0f, 0.0f, 0.0f, 0.0f,         1.0f
+        };
+        imgAttr.SetColorMatrix( &colorMatrix );
+        sigongPos.x = 400;
+        graphics.DrawImage( pImg, Gdiplus::Rect( sigongPos.x, sigongPos.y, w, h ),  // Dest coord
+            0, 0, w, h, UnitPixel, &imgAttr );                                      // Src Coord
+    }
+
+
+    // GrayScale
+    if ( pImg )
+    {
+        ColorMatrix grayMatrix =
+        {
+            0.3f, 0.3f, 0.3f,        0.0f,         0.0f,
+            0.3f, 0.3f, 0.3f,        0.0f,         0.0f,
+            0.3f, 0.3f, 0.3f,        0.0f,         0.0f,
+            0.0f, 0.0f, 0.0f,        1.0f,         0.0f,
+            0.0f, 0.0f, 0.0f,        0.0f,         1.0f
+        };
+        imgAttr.SetColorMatrix( &grayMatrix );
+        sigongPos.x = 500;
+        graphics.DrawImage( pImg, Gdiplus::Rect( sigongPos.x, sigongPos.y, w, h ),  // Dest coord
+            0, 0, w, h, UnitPixel, &imgAttr );
+    }
+
+    // test
+    if ( pImg != nullptr)
+    {
+        ColorMatrix grayMatrix =
+        {
+            0.3f, 0.3f, 0.3f,        0.0f,         0.0f,
+            0.3f, 0.3f, 0.3f,        0.0f,         0.0f,
+            0.3f, 0.3f, 0.3f,        0.0f,         0.0f,
+            0.0f, 0.0f, 0.0f,        1.0f,         0.0f,
+            0.0f, 0.0f, 0.0f,        0.0f,         1.0f
+        };
+        imgAttr.SetColorMatrix( &grayMatrix );
+        sigongPos.x = 600;
+
+        pImg->RotateFlip( RotateNoneFlipX );
+        graphics.DrawImage( pImg, Gdiplus::Rect( sigongPos.x, sigongPos.y, w, h ),  // Dest coord
+            0, 0, w, h, UnitPixel, &imgAttr );
+    }
+
+    delete pImg;
+}
+
+void Gdi_End()
+{
+    GdiplusShutdown( g_GdiToken );
+}
 
 //
 //  FUNCTION: MyRegisterClass()
@@ -656,6 +813,11 @@ void DrawBitmapDoubleBuffering( HWND hWnd, HDC hdc )
         SelectObject( hMemDC2, hOldBitmap2 );
         DeleteDC( hMemDC2 );
     }
+
+    // >> : Gdi+
+    Gdi_Draw( hMemDC );
+
+    // << : Gdi+
 
     // MEmDC2 => memdc
     BitBlt( hdc, 0, 0, rcClient.right, rcClient.bottom, hMemDC, 0, 0, SRCCOPY );
