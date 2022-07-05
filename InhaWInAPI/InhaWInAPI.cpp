@@ -573,6 +573,12 @@ VOID CALLBACK TimerProc( HWND hWnd, UINT uMsg, UINT idEvent, DWORD dwTime )
 
 BOOL CALLBACK DialogProc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
 {
+    static int Check[3], Radio;
+    TCHAR hobby[][30] = { _T( "독서" ), _T( "음악감상" ), _T( "게임" ) };
+    TCHAR gender[][30] = { _T( "여성" ), _T( "남성" )};
+    TCHAR output[258];
+
+
     UNREFERENCED_PARAMETER( lParam );
     switch ( iMsg )
     {
@@ -580,12 +586,49 @@ BOOL CALLBACK DialogProc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
     {
         HWND hBtn = GetDlgItem( hDlg, IDC_PAUSE );
         EnableWindow( hBtn, FALSE );
+
+        // Radio
+        CheckRadioButton( hDlg, IDC_RADIO1, IDC_RADIO2, IDC_RADIO1 );
     }
         return TRUE;
 
     case WM_COMMAND:
         switch ( LOWORD( wParam ) )
         {
+            // Radio button
+        case IDC_CHECK1:
+            {
+                Check[0] = 1 - Check[0];
+            }
+            break;
+
+        case IDC_CHECK2:
+        {
+                Check[1] = 1 - Check[1];
+        }
+        break;
+        case IDC_CHECK3:
+        {
+                Check[2] = 1 - Check[2];
+        }
+        break;
+        case IDC_RADIO1:
+            Radio = 0;
+            break;
+        case IDC_RADIO2:
+            Radio = 1;
+            break;
+        case IDC_BUTTON_OUTPUT:
+            _stprintf_s( output, _T( "선택한 취미는 %s %s %s 입니다.\r\n" ) _T( "선택한 성별은 %s입니다.\n" ),
+                Check[0] ? hobby[0] : _T( "" ),
+                Check[1] ? hobby[1] : _T( "" ),
+                Check[2] ? hobby[2] : _T( "" ),
+                gender[Radio]
+            );
+            SetDlgItemText( hDlg, IDC_EDIT_OUTPUT, output );
+            break;
+  
+
         case IDC_BUTTON_COPY:
         {
             TCHAR word[128];

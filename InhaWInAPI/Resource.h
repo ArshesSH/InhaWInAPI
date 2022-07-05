@@ -23,6 +23,13 @@
 #define IDC_EDIT_COPY                   1009
 #define IDC_BUTTON_COPY                 1010
 #define IDC_BUTTON_CLEAR                1011
+#define IDC_CHECK1                      1013
+#define IDC_CHECK2                      1014
+#define IDC_CHECK3                      1015
+#define IDC_RADIO1                      1016
+#define IDC_RADIO2                      1017
+#define IDC_EDIT_OUTPUT                 1018
+#define IDC_BUTTON_OUTPUT               1019
 #define ID_DrawCircle                   32771
 #define ID_DrawRect                     32772
 #define ID_MENU_EIXT                    32773
@@ -38,7 +45,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        132
 #define _APS_NEXT_COMMAND_VALUE         32784
-#define _APS_NEXT_CONTROL_VALUE         1013
+#define _APS_NEXT_CONTROL_VALUE         1020
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif
