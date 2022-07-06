@@ -50,6 +50,7 @@ LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 VOID    CALLBACK    TimerProc( HWND, UINT, UINT, DWORD );
 BOOL    CALLBACK    DialogProc( HWND, UINT, WPARAM, LPARAM );
+BOOL    CALLBACK    Dialog2Proc( HWND, UINT, WPARAM, LPARAM );
 
 // Created Key State Proc 2022.06.30
 //VOID    CALLBACK    KeyStateProc( HWND, UINT, UINT, DWORD );
@@ -482,6 +483,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     }
     break;
 
+    case WM_MBUTTONDOWN:
+        {
+            DialogBox( hInst, MAKEINTRESOURCE( IDD_DIALOG2 ), hWnd, Dialog2Proc );
+        }
+
     case WM_LBUTTONUP:
     {
     }
@@ -688,6 +694,65 @@ BOOL CALLBACK DialogProc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
         break;
         }
     }
+    return FALSE;
+}
+
+BOOL CALLBACK Dialog2Proc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
+{
+    static HWND hCombo;
+    static int selection;
+    TCHAR name[20];
+
+
+    UNREFERENCED_PARAMETER( lParam );
+    switch ( iMsg )
+    {
+    case WM_INITDIALOG:
+        {
+            hCombo = GetDlgItem( hDlg, IDC_COMBO_LIST );
+        }
+        return TRUE;
+
+    case WM_COMMAND:
+        switch ( LOWORD( wParam ) )
+        {
+        case IDC_BUTTON_INSERT:
+            {
+                GetDlgItemText( hDlg, IDC_EDIT_NAME, name, 20 );
+                if ( _tcscmp( name, _T( "" ) ) )
+                {
+                    SendMessage( hCombo, CB_ADDSTRING, 0, (LPARAM)name );
+                    SetDlgItemText( hDlg, IDC_EDIT_NAME, _T( "" ) );
+                }
+                return TRUE;
+            }
+            break;
+        case IDC_BUTTON_DELETE:
+            {
+                SendMessage( hCombo, CB_DELETESTRING, selection, 0 );
+                return TRUE;
+            }
+            break;
+        case IDC_COMBO_LIST:
+            {
+                if ( HIWORD( wParam ) == CBN_SELCHANGE )
+                {
+                    selection = SendMessage( hCombo, CB_GETCURSEL, 0, 0 );
+                }
+            }
+            break;
+        case IDCLOSE:
+        case IDOK:
+        case IDCANCEL:
+            {
+                EndDialog( hDlg, LOWORD( wParam ) );
+                return TRUE;
+            }
+            break;
+        }
+        break;
+    }
+
     return FALSE;
 }
 
