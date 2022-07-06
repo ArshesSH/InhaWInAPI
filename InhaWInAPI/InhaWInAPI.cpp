@@ -700,6 +700,8 @@ BOOL CALLBACK DialogProc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
 BOOL CALLBACK Dialog2Proc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
 {
     static HWND hCombo;
+    static HWND hList;
+
     static int selection;
     TCHAR name[20];
 
@@ -710,6 +712,7 @@ BOOL CALLBACK Dialog2Proc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
     case WM_INITDIALOG:
         {
             hCombo = GetDlgItem( hDlg, IDC_COMBO_LIST );
+            hList = GetDlgItem( hDlg, IDC_LIST_NAME );
         }
         return TRUE;
 
@@ -722,6 +725,7 @@ BOOL CALLBACK Dialog2Proc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
                 if ( _tcscmp( name, _T( "" ) ) )
                 {
                     SendMessage( hCombo, CB_ADDSTRING, 0, (LPARAM)name );
+                    SendMessage( hList, LB_ADDSTRING, 0, (LPARAM)name );
                     SetDlgItemText( hDlg, IDC_EDIT_NAME, _T( "" ) );
                 }
                 return TRUE;
@@ -730,6 +734,7 @@ BOOL CALLBACK Dialog2Proc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
         case IDC_BUTTON_DELETE:
             {
                 SendMessage( hCombo, CB_DELETESTRING, selection, 0 );
+                SendMessage( hList, LB_DELETESTRING, selection, 0 );
                 return TRUE;
             }
             break;
@@ -738,6 +743,14 @@ BOOL CALLBACK Dialog2Proc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
                 if ( HIWORD( wParam ) == CBN_SELCHANGE )
                 {
                     selection = SendMessage( hCombo, CB_GETCURSEL, 0, 0 );
+                }
+            }
+            break;
+        case IDC_LIST_NAME:
+            {
+                if ( HIWORD( wParam ) == LBN_SELCHANGE )
+                {
+                    selection = SendMessage( hCombo, LB_GETCURSEL, 0, 0 );
                 }
             }
             break;
