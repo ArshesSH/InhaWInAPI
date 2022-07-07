@@ -87,6 +87,8 @@ HBITMAP hDoubleBufferImage;
 
 FrameTimer timer;
 
+// Dialog 
+HWND g_DlgHwnd = NULL;
 
 void CreateBitmap();
 void UpdateFrame(HWND hWnd);
@@ -373,6 +375,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 static RECT rcClient;
 
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     //static Question q7;
@@ -485,9 +488,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_MBUTTONDOWN:
         {
-            DialogBox( hInst, MAKEINTRESOURCE( IDD_DIALOG2 ), hWnd, Dialog2Proc );
+            //DialogBox( hInst, MAKEINTRESOURCE( IDD_DIALOG2 ), hWnd, Dialog2Proc );
+            if ( !IsWindow( g_DlgHwnd ) )
+            {
+                g_DlgHwnd = CreateDialog( hInst, MAKEINTRESOURCE( IDD_DIALOG2 ), hWnd, Dialog2Proc );
+                ShowWindow( g_DlgHwnd, SW_SHOW );
+            }
         }
-
+        break;
     case WM_LBUTTONUP:
     {
     }
@@ -758,7 +766,10 @@ BOOL CALLBACK Dialog2Proc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
         case IDOK:
         case IDCANCEL:
             {
-                EndDialog( hDlg, LOWORD( wParam ) );
+                //EndDialog( hDlg, LOWORD( wParam ) );
+                // for modeless
+                DestroyWindow( g_DlgHwnd );
+                g_DlgHwnd = NULL;
                 return TRUE;
             }
             break;
