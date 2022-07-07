@@ -15,6 +15,7 @@
 #define IDR_MENU1                       129
 #define IDD_DIALOG1                     131
 #define IDD_DIALOG2                     132
+#define IDD_DIALOG3                     134
 #define IDC_BUTTON_PRINT                1002
 #define IDC_TEXT                        1004
 #define IDC_START                       1005
@@ -36,6 +37,10 @@
 #define IDC_BUTTON_INSERT               1022
 #define IDC_BUTTON_DELETE               1025
 #define IDC_LIST_NAME                   1027
+#define IDC_LIST_MEMBER                 1028
+#define IDC_BUTTON_INPUT_DATA           1029
+#define IDC_EDIT_MEMBER_NAME            1030
+#define IDC_EDIT_MEMBER_PHONE           1031
 #define ID_DrawCircle                   32771
 #define ID_DrawRect                     32772
 #define ID_MENU_EIXT                    32773
@@ -49,9 +54,9 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
-#define _APS_NEXT_RESOURCE_VALUE        134
+#define _APS_NEXT_RESOURCE_VALUE        135
 #define _APS_NEXT_COMMAND_VALUE         32784
-#define _APS_NEXT_CONTROL_VALUE         1028
+#define _APS_NEXT_CONTROL_VALUE         1033
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

@@ -11,6 +11,9 @@
 #include "FrameTimer.h"
 #include <commdlg.h>
 
+// List Control
+#include <CommCtrl.h>
+
 
 // >> : GDI+
 
@@ -51,6 +54,12 @@ INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 VOID    CALLBACK    TimerProc( HWND, UINT, UINT, DWORD );
 BOOL    CALLBACK    DialogProc( HWND, UINT, WPARAM, LPARAM );
 BOOL    CALLBACK    Dialog2Proc( HWND, UINT, WPARAM, LPARAM );
+BOOL    CALLBACK    Dialog3Proc( HWND, UINT, WPARAM, LPARAM );
+
+// list Ctrl
+void MakeColumn( HWND hDlg );
+void InsertData( HWND hDlg );
+
 
 // Created Key State Proc 2022.06.30
 //VOID    CALLBACK    KeyStateProc( HWND, UINT, UINT, DWORD );
@@ -498,6 +507,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     case WM_LBUTTONUP:
     {
+            DialogBox( hInst, MAKEINTRESOURCE( IDD_DIALOG3 ), hWnd, Dialog3Proc );
     }
     break;
 
@@ -778,6 +788,104 @@ BOOL CALLBACK Dialog2Proc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
     }
 
     return FALSE;
+}
+
+BOOL CALLBACK Dialog3Proc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
+{
+
+    UNREFERENCED_PARAMETER( lParam );
+    switch ( iMsg )
+    {
+    case WM_INITDIALOG:
+        {
+            MakeColumn( hDlg );
+        }
+        return TRUE;
+
+    case WM_COMMAND:
+        switch ( LOWORD( wParam ) )
+        {
+        case IDC_BUTTON_INPUT_DATA:
+            {
+                InsertData( hDlg );
+            }
+            break;
+        case IDOK:
+        case IDCANCEL:
+            {
+                EndDialog( hDlg, LOWORD( wParam ) );
+                hDlg = NULL;
+                return TRUE;
+            }
+            break;
+        }
+        break;
+    }
+    return FALSE;
+}
+
+void MakeColumn( HWND hDlg )
+{
+    LPCTSTR     name[2] = { _T( "이름" ), _T( "전화번호" ) };
+    LVCOLUMN    lvCol = { 0, };
+    HWND        hList;
+    int         i;
+    hList = GetDlgItem( hDlg, IDC_LIST_MEMBER );
+    lvCol.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT| LVCF_SUBITEM;
+    lvCol.fmt = LVCFMT_LEFT;
+
+    RECT rt;
+    GetClientRect( hList, &rt );
+
+    for ( i = 0; i < 2; ++i )
+    {
+        lvCol.cx = (int)rt.right * 0.5;
+        lvCol.iSubItem = i;
+        lvCol.pszText = (LPWSTR)name[i];
+        SendMessage( hList, LVM_INSERTCOLUMN, (WPARAM)i, (LPARAM)&lvCol );
+    }
+}
+
+void InsertData( HWND hDlg )
+{
+    LVITEM      item;
+    HWND        hList;
+    int cnt;
+    //LPCTSTR     name[20] = { _T( "이우석" ), _T( "날개뼈" ) };
+    //LPCTSTR     phone[20] = { _T( "010-1234-5678" ), _T( "02-123-2345" ) };
+    TCHAR       name[20], phone[20];
+
+
+    GetDlgItemText( hDlg, IDC_EDIT_MEMBER_NAME, name, 20 );
+    SetDlgItemText( hDlg, IDC_EDIT_MEMBER_NAME, _T( "" ));
+
+    if ( _tcscmp( name, _T( "" ) ) == 0 )
+    {
+        return;
+    }
+
+    GetDlgItemText( hDlg, IDC_EDIT_MEMBER_PHONE, phone, 20 );
+    SetDlgItemText( hDlg, IDC_EDIT_MEMBER_PHONE, _T( "" ) );
+
+    hList = GetDlgItem( hDlg, IDC_LIST_MEMBER );
+    cnt = ListView_GetItemCount( hList );
+    item.mask = LVIF_TEXT;
+    item.iItem = cnt;
+    item.iSubItem = 0;
+    item.pszText = (LPWSTR)name;
+    ListView_InsertItem( hList, &item );
+    ListView_SetItemText( hList, cnt, 1, (LPWSTR)phone );
+
+
+    //for ( int i = 0; i < 2; ++i )
+    //{
+    //    item.mask = LVIF_TEXT;
+    //    item.iItem = i;
+    //    item.iSubItem = 0;
+    //    item.pszText = (LPWSTR)name[i];
+    //    ListView_InsertItem( hList, &item );
+    //    ListView_SetItemText( hList, i, 1, (LPWSTR)phone[i] );
+    //}
 }
 
 // Key capture
