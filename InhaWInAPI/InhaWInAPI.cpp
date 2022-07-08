@@ -852,14 +852,14 @@ BOOL CALLBACK Dialog3Proc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
     return FALSE;
 }
 
-
+static constexpr int IDC_CHILD_BTN = 100;
 
 LRESULT CALLBACK ChildWndProc1( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
 {
-
     switch ( message )
     {
     case WM_CREATE:
+       
         break;
     case WM_COMMAND:
         break;
@@ -888,13 +888,24 @@ LRESULT CALLBACK ChildWndProc1( HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 LRESULT CALLBACK ChildWndProc2( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
 {
     static POINT ptMouse;
-    static RECT child2Rect;
+    static HWND hBtn;
+    static bool bToggle = false;
+
     switch ( message )
     {
     case WM_CREATE:
-        GetClientRect( hWnd, &child2Rect );
+        hBtn = CreateWindow( _T( "button" ), _T( "OK" ), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+            300, 10, 100, 30, hWnd, (HMENU)IDC_CHILD_BTN, hInst, NULL );
         break;
     case WM_COMMAND:
+        switch ( LOWORD( wParam ) )
+        {
+        case IDC_CHILD_BTN:
+            {
+                bToggle = !bToggle;
+            }
+            break;
+        }
         break;
     case WM_MOUSEMOVE:
         
@@ -915,6 +926,11 @@ LRESULT CALLBACK ChildWndProc2( HWND hWnd, UINT message, WPARAM wParam, LPARAM l
             ScreenToClient( hWnd, &ptMouse );
             wsprintf( str, TEXT( "Local Position : ( %04d, %04d)" ), ptMouse.x, ptMouse.y );
             TextOut( hdc, 10, 50, str, lstrlen( str ) );
+
+            if ( bToggle )
+            {
+                TextOut( hdc, 300, 100, _T( "Button Clicked" ), 14 );
+            }
 
             //DrawBitmapDoubleBuffering( hWnd, hdc );
             //DrawRectText( hdc );
