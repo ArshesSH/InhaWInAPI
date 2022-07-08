@@ -45,6 +45,8 @@ void Gdi_Draw( HDC hdc );
 void Gdi_End();
 // << : GDI+
 
+//split window
+HWND childHwnd[2];
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -55,6 +57,8 @@ VOID    CALLBACK    TimerProc( HWND, UINT, UINT, DWORD );
 BOOL    CALLBACK    DialogProc( HWND, UINT, WPARAM, LPARAM );
 BOOL    CALLBACK    Dialog2Proc( HWND, UINT, WPARAM, LPARAM );
 BOOL    CALLBACK    Dialog3Proc( HWND, UINT, WPARAM, LPARAM );
+LRESULT CALLBACK    ChildWndProc1( HWND, UINT, WPARAM, LPARAM );
+LRESULT CALLBACK    ChildWndProc2( HWND, UINT, WPARAM, LPARAM );
 
 // list Ctrl
 void MakeColumn( HWND hDlg );
@@ -119,7 +123,6 @@ void DrawCircle( HDC hdc, POINT center, int radius );
 void DrawRect( HDC hdc, POINT center, int width, int height );
 void DrawPolygonTest( HDC hdc );
 void OutFromFile( TCHAR filename[], const HWND& hwnd );
-
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -340,7 +343,20 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
 
-    return RegisterClassExW(&wcex);
+    RegisterClassExW(&wcex);
+
+    // Split winodws
+    wcex.lpfnWndProc = ChildWndProc1;
+    wcex.lpszMenuName = nullptr;
+    wcex.lpszClassName = _T( "ChildWnd1Class" );
+    RegisterClassEx( &wcex );
+
+    wcex.lpfnWndProc = ChildWndProc2;
+    wcex.lpszMenuName = nullptr;
+    wcex.lpszClassName = _T( "ChildWnd2Class" );
+    RegisterClassEx( &wcex );
+
+    return NULL;
 }
 
 //
@@ -401,6 +417,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
     case WM_CREATE:
         GetClientRect( hWnd, &rcClient );
+
+        childHwnd[0] = CreateWindowEx(
+            WS_EX_CLIENTEDGE, _T( "ChildWnd1Class" ), NULL, WS_CHILD | WS_VISIBLE,
+            0, 0, rcClient.right, rcClient.bottom * 0.5 - 1,
+            hWnd, nullptr, hInst, nullptr
+        );
+
+        childHwnd[1] = CreateWindowEx(
+            WS_EX_CLIENTEDGE, _T( "ChildWnd2Class" ), NULL, WS_CHILD | WS_VISIBLE,
+            0, rcClient.bottom*0.5 + 1, rcClient.right, rcClient.bottom * 0.5 - 1,
+            hWnd, nullptr, hInst, nullptr
+        );
 
         // Create Bitmap
         CreateBitmap();
@@ -822,6 +850,84 @@ BOOL CALLBACK Dialog3Proc( HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam )
         break;
     }
     return FALSE;
+}
+
+
+
+LRESULT CALLBACK ChildWndProc1( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
+{
+
+    switch ( message )
+    {
+    case WM_CREATE:
+        break;
+    case WM_COMMAND:
+        break;
+    case WM_MOUSEMOVE:
+        //InvalidateRect( hWnd, nullptr, false );
+        break;
+    case WM_PAINT:
+        {
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint( hWnd, &ps );
+
+            DrawBitmapDoubleBuffering( hWnd, hdc );
+            DrawRectText( hdc );
+
+            EndPaint( hWnd, &ps );
+        }
+        break;
+    case WM_DESTROY:
+        break;
+    }
+
+    // 처리되지 않은 메시지를 다시 돌려주겠다는 뜻
+    return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+LRESULT CALLBACK ChildWndProc2( HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam )
+{
+    static POINT ptMouse;
+    static RECT child2Rect;
+    switch ( message )
+    {
+    case WM_CREATE:
+        GetClientRect( hWnd, &child2Rect );
+        break;
+    case WM_COMMAND:
+        break;
+    case WM_MOUSEMOVE:
+        
+        //InvalidateRect( hWnd, nullptr, false );
+        break;
+    case WM_PAINT:
+        {
+            GetCursorPos( &ptMouse );
+
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint( hWnd, &ps );
+
+            TCHAR str[128];
+            wsprintf( str, TEXT( "World Position : ( %04d, %04d)" ), ptMouse.x, ptMouse.y );
+            TextOut( hdc, 10, 30, str, lstrlen( str ) );
+
+            // Local Pos로 변경
+            ScreenToClient( hWnd, &ptMouse );
+            wsprintf( str, TEXT( "Local Position : ( %04d, %04d)" ), ptMouse.x, ptMouse.y );
+            TextOut( hdc, 10, 50, str, lstrlen( str ) );
+
+            //DrawBitmapDoubleBuffering( hWnd, hdc );
+            //DrawRectText( hdc );
+
+            EndPaint( hWnd, &ps );
+        }
+        break;
+    case WM_DESTROY:
+        break;
+    }
+
+    // 처리되지 않은 메시지를 다시 돌려주겠다는 뜻
+    return DefWindowProc( hWnd, message, wParam, lParam );
 }
 
 void MakeColumn( HWND hDlg )
