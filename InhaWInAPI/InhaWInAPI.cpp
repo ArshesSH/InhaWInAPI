@@ -415,7 +415,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static char filepath[100], filename[100];
 
 
-
     switch (message)
     {
     case WM_CREATE:
@@ -477,8 +476,48 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case IDM_EXIT:
                 DestroyWindow(hWnd);
                 break;
-            
+            case ID_FILE_OPEN:
+                {
+                    TCHAR str[100], lpstrFile[100] = _T( "" );
+                    TCHAR filter[] = _T( "Every File(*.*) \0*.*\0Text File\0*.t\0;*.doc\0" );
+                    OPENFILENAME ofn;
+                    memset( &ofn, 0, sizeof( OPENFILENAME ) );
+                    ofn.lStructSize = sizeof( OPENFILENAME );
+                    ofn.hwndOwner = hWnd;
+                    ofn.lpstrFilter = filter;
+                    ofn.lpstrFile = lpstrFile;
+                    ofn.nMaxFile = 256;
+                    ofn.lpstrInitialDir = _T( "." );
+                    auto a = GetOpenFileName( &ofn );
+                    if (GetOpenFileName( &ofn ) != 0)
+                    {
+                        _stprintf_s( str, _T( "%s 파일을 열겠습니까?" ), ofn.lpstrFile );
+                        MessageBox( hWnd, str, _T( "열기 선택" ), MB_OK );
+                        OutFromFile( ofn.lpstrFile, hWnd );
 
+                    }
+                }
+                break;
+            case ID_FILE_SAVE:
+                {
+                    TCHAR str[100], lpstrFile[100] = _T( "" );
+                    TCHAR filter[] = _T( "Every File(*.*) \0*.*\0Text File\0*.t\0" );
+                    OPENFILENAME ofn;
+                    memset( &ofn, 0, sizeof( OPENFILENAME ) );
+                    ofn.lStructSize = sizeof( OPENFILENAME );
+                    ofn.hwndOwner = hWnd;
+                    ofn.lpstrFilter = filter;
+                    ofn.lpstrFile = lpstrFile;
+                    ofn.nMaxFile = 256;
+                    ofn.lpstrInitialDir = _T( "." );
+                    if (GetSaveFileName( &ofn ) != 0)
+                    {
+                        //_stprintf_s( str, _T( "%s 파일을 열겠습니까?" ), ofn.lpstrFile );
+                        //MessageBox( hWnd, str, _T( "열기 선택" ), MB_OK );
+                        OutFromFile( ofn.lpstrFile, hWnd );
+                    }
+                }
+                break;
             default:
                 return DefWindowProc(hWnd, message, wParam, lParam);
             }
@@ -1351,11 +1390,8 @@ void OutFromFile( TCHAR filename[], const HWND& hwnd )
     std::wstring buf;
     TCHAR buffer[500];
     hdc = GetDC( hwnd );
-#ifdef _UNICODE
-    _tfopen_s( &pF, filename, _T( "r, ccs = UNICODE" ) );
-#else
+   // _tfopen_s( &pF, filename, _T( "r, ccs = UNICODE" ) );
     _tfopen_s( &pF, filename, _T( "r" ) );
-#endif // _UNICODE
     while ( _fgetts( buffer, 100, pF ) != NULL )
     {
         const auto bufferSize = _tcslen( buffer ) - 1;
