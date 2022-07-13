@@ -9,6 +9,7 @@
 #include "Question.h"
 #include "GeometricObject.h"
 #include "FrameTimer.h"
+
 #include <commdlg.h>
 
 // List Control
@@ -413,6 +414,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static int selectedMenu;
     static char filepath[100], filename[100];
 
+
+
     switch (message)
     {
     case WM_CREATE:
@@ -514,6 +517,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONDOWN:
     {
+
     }
     break;
 
@@ -891,6 +895,13 @@ LRESULT CALLBACK ChildWndProc2( HWND hWnd, UINT message, WPARAM wParam, LPARAM l
     static HWND hBtn;
     static bool bToggle = false;
 
+    HDC hdc;
+    HANDLE hFile;
+    TCHAR InBuff[1000];
+    TCHAR OutBuff[100] = _T( "≈ÿΩ∫∆Æ" );
+    DWORD size;
+    RECT rt;
+
     switch ( message )
     {
     case WM_CREATE:
@@ -911,6 +922,26 @@ LRESULT CALLBACK ChildWndProc2( HWND hWnd, UINT message, WPARAM wParam, LPARAM l
         
         //InvalidateRect( hWnd, nullptr, false );
         break;
+
+    case WM_LBUTTONDOWN:
+        {
+            hFile = CreateFile(
+                _T( "test1.txt" ),
+                GENERIC_READ | GENERIC_WRITE,
+                FILE_SHARE_READ | FILE_SHARE_WRITE,
+                NULL, OPEN_EXISTING, 0, 0
+            );
+            memset( InBuff, 0, sizeof( InBuff ) );
+            ReadFile( hFile, InBuff, 999 * sizeof( TCHAR ), &size, NULL );
+            hdc = GetDC( hWnd );
+            GetClientRect( hWnd, &rt );
+            DrawText( hdc, InBuff, (int)_tcslen( InBuff ), &rt, DT_TOP | DT_LEFT );
+            ReleaseDC( hWnd, hdc );
+            WriteFile( hFile, OutBuff, (DWORD)_tcslen( OutBuff ) * sizeof( TCHAR ), &size, NULL );
+            CloseHandle( hFile );
+        }
+        break;
+
     case WM_PAINT:
         {
             GetCursorPos( &ptMouse );
